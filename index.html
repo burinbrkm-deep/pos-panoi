@@ -2512,6 +2512,7 @@ function newBox(first) {
   rHero();
 }
 function toggleTop(id) {
+  act("\u0E41\u0E15\u0E30\u0E02\u0E2D\u0E07\u0E17\u0E2D\u0E14 " + (NAMES()[id] || id));
   const was = (curBox() || { items: [] }).items.includes(id);
   sayMenu((was ? "\u0E40\u0E2D\u0E32" : "") + (NAMES()[id] || "") + (was ? "\u0E2D\u0E2D\u0E01" : ""));
   cart = Core.boxToggle(cart, activeKey, id, TOPS(), NAMES(), channel).map((l) => l.key === activeKey && l.extra ? __spreadProps(__spreadValues({}, l), { name: l.name + ` (\u0E02\u0E49\u0E32\u0E27\u0E40\u0E1E\u0E34\u0E48\u0E21 \u0E3F${l.extra})` }) : l);
@@ -2577,6 +2578,7 @@ function quickAdd(m) {
   add(m, [], 1, "");
 }
 function add(m, o, q, n) {
+  act("\u0E40\u0E1E\u0E34\u0E48\u0E21 " + (m.name || ""));
   try {
     sayMenu(String(m.name || "").replace(/ \(.*\)$/, ""));
     cart = Core.addLine(cart, m, o, q, n, channel);
@@ -2625,23 +2627,23 @@ function pad() {
 function bindPad(root) {
   const f = [...root.querySelectorAll(".np")];
   if (!f.length) return;
-  let act = f.find((x) => x.classList.contains("pa")) || f[0];
+  let act2 = f.find((x) => x.classList.contains("pa")) || f[0];
   const set = (el) => {
     f.forEach((x) => x.classList.toggle("pa", x === el));
-    act = el;
+    act2 = el;
   };
-  set(act);
+  set(act2);
   f.forEach((el) => {
     el.readOnly = true;
     el.onclick = () => set(el);
   });
   root.querySelectorAll("[data-pk]").forEach((b) => b.onclick = () => {
-    let v = act.value;
+    let v = act2.value;
     const k = b.dataset.pk;
     v = k === "C" ? "" : k === "\u232B" ? v.slice(0, -1) : (v + k).replace(/^0+(?=\d)/, "");
     if (v.length > 6) return;
-    act.value = v;
-    act.dispatchEvent(new Event("input"));
+    act2.value = v;
+    act2.dispatchEvent(new Event("input"));
   });
 }
 function amtPicker(o) {
@@ -2756,9 +2758,9 @@ function rCart() {
   f.innerHTML = `<span class="c">${T.count}</span>\u0E1A\u0E34\u0E25 ${Core.billCode(today(), tickets[cur].no)}${tickets.length > 1 ? ` <small>(\u0E40\u0E1B\u0E34\u0E14 ${tickets.length} \u0E1A\u0E34\u0E25)</small>` : ""}${cfg.gs && pend ? `<span class="wq">\u23F3 \u0E23\u0E2D\u0E2A\u0E48\u0E07 ${pend}</span>` : ""}<span class="t">${T.count ? "\u0E3F" + fmt(T.total) + " \u203A" : "\u0E14\u0E39\u0E1A\u0E34\u0E25 \u203A"}</span>`;
   $("#lines").innerHTML = cart.length ? cart.map((l) => {
     if (l.box) {
-      const act = l.key === activeKey;
-      return `<div class="bxl ${act ? "cur" : ""}" data-box="${l.key}">
- <div class="bh">${IMG.rice ? `<img src="${IMG.rice}">` : "\u{1F35A}"}<div class="bt"><b>\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 ${l.items.length ? "+ " + l.items.length + " \u0E2D\u0E22\u0E48\u0E32\u0E07" : "\u0E40\u0E1B\u0E25\u0E48\u0E32"}</b><span>${act ? "\u25CF \u0E01\u0E33\u0E25\u0E31\u0E07\u0E41\u0E01\u0E49\u0E2B\u0E48\u0E2D\u0E19\u0E35\u0E49" : "\u0E41\u0E15\u0E30\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E41\u0E01\u0E49\u0E44\u0E02"}</span></div><div class="bp">\u0E3F${fmt(l.unit * l.qty)}${l.qty > 1 ? `<small>\u0E3F${fmt(l.unit)} \xD7 ${l.qty}</small>` : ""}</div></div>
+      const act2 = l.key === activeKey;
+      return `<div class="bxl ${act2 ? "cur" : ""}" data-box="${l.key}">
+ <div class="bh">${IMG.rice ? `<img src="${IMG.rice}">` : "\u{1F35A}"}<div class="bt"><b>\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 ${l.items.length ? "+ " + l.items.length + " \u0E2D\u0E22\u0E48\u0E32\u0E07" : "\u0E40\u0E1B\u0E25\u0E48\u0E32"}</b><span>${act2 ? "\u25CF \u0E01\u0E33\u0E25\u0E31\u0E07\u0E41\u0E01\u0E49\u0E2B\u0E48\u0E2D\u0E19\u0E35\u0E49" : "\u0E41\u0E15\u0E30\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E41\u0E01\u0E49\u0E44\u0E02"}</span></div><div class="bp">\u0E3F${fmt(l.unit * l.qty)}${l.qty > 1 ? `<small>\u0E3F${fmt(l.unit)} \xD7 ${l.qty}</small>` : ""}</div></div>
  ${l.items.length || l.extra ? `<ul class="bi">${l.items.map((i) => `<li><span>\u2713 ${NAMES()[i]}</span><button data-rm="${i}" data-k="${l.key}">\u2715</button></li>`).join("")}${l.extra ? `<li class="rx"><span>\u{1F35A} \u0E02\u0E49\u0E32\u0E27\u0E40\u0E1E\u0E34\u0E48\u0E21 \u0E3F${l.extra} (\u2248${Core.riceGrams(l.extra)} \u0E01.)</span><button data-rx="${l.extra}" data-k="${l.key}">\u2715</button></li>` : ""}</ul>` : ""}
  <div class="bf"><span>\u0E08\u0E33\u0E19\u0E27\u0E19\u0E2B\u0E48\u0E2D</span><div class="qty"><button data-k="${l.key}" data-d="-1">\u2212</button><b>${l.qty}</b><button data-k="${l.key}" data-d="1">+</button></div></div></div>`;
     }
@@ -2828,6 +2830,7 @@ const _noDisc = () => {
   };
 };
 $("#bPay").onclick = () => {
+  act("\u0E01\u0E14\u0E0A\u0E33\u0E23\u0E30\u0E40\u0E07\u0E34\u0E19");
   save();
   const T = Core.totals(cart, channel, discount);
   SND.open();
@@ -2910,6 +2913,7 @@ $("#bPay").onclick = () => {
         });
         b.use = u;
       }
+      act("\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 \u0E1A\u0E34\u0E25 " + b.code);
       b.dirty = 1;
       bills.push(b);
       store.set("bills", bills);
@@ -3072,16 +3076,66 @@ async function shareSlips(slips, code) {
   toast('\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E19\u0E35\u0E49\u0E41\u0E0A\u0E23\u0E4C\u0E23\u0E39\u0E1B\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \xB7 \u0E01\u0E14\u0E04\u0E49\u0E32\u0E07\u0E17\u0E35\u0E48\u0E23\u0E39\u0E1B\u0E43\u0E1A\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E41\u0E25\u0E49\u0E27\u0E40\u0E25\u0E37\u0E2D\u0E01 "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E23\u0E39\u0E1B" \u0E41\u0E17\u0E19');
   return false;
 }
-function logErr(w, e) {
+const ERR_TH = { error: "\u0E42\u0E04\u0E49\u0E14\u0E17\u0E33\u0E07\u0E32\u0E19\u0E1C\u0E34\u0E14\u0E1E\u0E25\u0E32\u0E14", promise: "\u0E07\u0E32\u0E19\u0E40\u0E1A\u0E37\u0E49\u0E2D\u0E07\u0E2B\u0E25\u0E31\u0E07\u0E1C\u0E34\u0E14\u0E1E\u0E25\u0E32\u0E14", say: "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14\u0E1C\u0E34\u0E14\u0E1E\u0E25\u0E32\u0E14", restart: "\u0E41\u0E2D\u0E1B\u0E1B\u0E34\u0E14\u0E15\u0E31\u0E27\u0E40\u0E2D\u0E07/\u0E42\u0E2B\u0E25\u0E14\u0E43\u0E2B\u0E21\u0E48\u0E40\u0E2D\u0E07", reload: "\u0E21\u0E35\u0E01\u0E32\u0E23\u0E23\u0E35\u0E40\u0E1F\u0E23\u0E0A\u0E2B\u0E19\u0E49\u0E32", hidden: "\u0E2D\u0E2D\u0E01\u0E08\u0E32\u0E01\u0E41\u0E2D\u0E1B (\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E41\u0E2D\u0E1B\u0E2D\u0E37\u0E48\u0E19/\u0E1B\u0E34\u0E14\u0E08\u0E2D)", sync: "\u0E2A\u0E48\u0E07\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E02\u0E36\u0E49\u0E19 Sheets \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08" };
+let lastAct = "\u0E40\u0E1B\u0E34\u0E14\u0E41\u0E2D\u0E1B";
+function act(a) {
+  lastAct = a;
   try {
-    const l = JSON.parse(localStorage.getItem("pos_errlog") || "[]");
-    l.push((/* @__PURE__ */ new Date()).toLocaleString("th-TH") + " " + w + ": " + (e && e.message || e));
-    localStorage.setItem("pos_errlog", JSON.stringify(l.slice(-20)));
+    localStorage.setItem("pos_hb", JSON.stringify({ t: Date.now(), a, clean: 0 }));
   } catch (_) {
   }
 }
-window.addEventListener("error", (e) => logErr("error", e.error || e.message));
-window.addEventListener("unhandledrejection", (e) => logErr("promise", e.reason));
+function logErr(w, e, extra) {
+  try {
+    const l = JSON.parse(localStorage.getItem("pos_errlog") || "[]");
+    const msg = e && e.message || e || "";
+    l.push(`${(/* @__PURE__ */ new Date()).toLocaleString("th-TH")} \xB7 ${ERR_TH[w] || w}${msg ? " \u2014 " + msg : ""}${extra ? " \xB7 " + extra : ""}`);
+    localStorage.setItem("pos_errlog", JSON.stringify(l.slice(-30)));
+  } catch (_) {
+  }
+}
+window.addEventListener("error", (e) => logErr("error", e.error || e.message, "\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14\u0E01\u0E33\u0E25\u0E31\u0E07: " + lastAct));
+window.addEventListener("unhandledrejection", (e) => logErr("promise", e.reason, "\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14\u0E01\u0E33\u0E25\u0E31\u0E07: " + lastAct));
+(() => {
+  try {
+    const hb = JSON.parse(localStorage.getItem("pos_hb") || "null");
+    const nav = (performance.getEntriesByType && performance.getEntriesByType("navigation")[0] || {}).type;
+    if (hb && !hb.clean) {
+      const ago = Math.round((Date.now() - hb.t) / 1e3);
+      logErr(nav === "reload" ? "reload" : "restart", "", `\u0E40\u0E01\u0E34\u0E14\u0E2B\u0E25\u0E31\u0E07\u0E08\u0E32\u0E01 "${hb.a}" \u0E44\u0E1B ${ago} \u0E27\u0E34\u0E19\u0E32\u0E17\u0E35 \xB7 \u0E2B\u0E19\u0E48\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E08\u0E33\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07 ${navigator.deviceMemory || "?"} GB \xB7 ${navigator.userAgent.match(/Android [\d.]+|iPhone OS [\d_]+|Windows|Mac OS X [\d_]+/) || ""} \xB7 Chrome ${(navigator.userAgent.match(/Chrome\/(\d+)/) || [])[1] || "?"}`);
+    }
+    act("\u0E40\u0E1B\u0E34\u0E14\u0E41\u0E2D\u0E1B");
+    document.addEventListener("visibilitychange", () => {
+      try {
+        const hb2 = JSON.parse(localStorage.getItem("pos_hb") || "{}");
+        hb2.clean = document.hidden ? 1 : 0;
+        hb2.t = Date.now();
+        localStorage.setItem("pos_hb", JSON.stringify(hb2));
+      } catch (_) {
+      }
+    });
+    addEventListener("pagehide", () => {
+      try {
+        const hb2 = JSON.parse(localStorage.getItem("pos_hb") || "{}");
+        hb2.clean = 1;
+        localStorage.setItem("pos_hb", JSON.stringify(hb2));
+      } catch (_) {
+      }
+    });
+  } catch (e) {
+  }
+})();
+setInterval(() => {
+  try {
+    const hb = JSON.parse(localStorage.getItem("pos_hb") || "{}");
+    if (!document.hidden) {
+      hb.t = Date.now();
+      hb.clean = 0;
+      localStorage.setItem("pos_hb", JSON.stringify(hb));
+    }
+  } catch (_) {
+  }
+}, 5e3);
 let AC = null;
 function tone(f, d, t = 0, type = "sine", v = 0.18) {
   try {
@@ -3208,7 +3262,10 @@ async function sync() {
       store.set("lastSync", lastSync);
       syncErr = "";
       more = bills.some((b) => b.dirty) && q.length === 40;
-    } else syncErr = j.error || "\u0E2A\u0E48\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08";
+    } else {
+      syncErr = j.error || "\u0E2A\u0E48\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08";
+      logErr("sync", syncErr);
+    }
   } catch (e) {
     syncErr = "\u0E2D\u0E2D\u0E1F\u0E44\u0E25\u0E19\u0E4C \xB7 \u0E08\u0E30\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48\u0E40\u0E2D\u0E07";
   }
@@ -3219,6 +3276,7 @@ async function sync() {
 setInterval(sync, 3e4);
 window.addEventListener("online", () => sync());
 async function printBill(b, withKitchen) {
+  act("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E43\u0E1A\u0E40\u0E2A\u0E23\u0E47\u0E08 " + (b.code || ""));
   try {
     await document.fonts.ready;
   } catch (e) {
@@ -3431,7 +3489,9 @@ function rSet() {
  <label><input type="checkbox" id="s7" style="width:auto" ${cfg.voice === false ? "" : "checked"}> \u{1F5E3}\uFE0F \u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14\u0E1A\u0E2D\u0E01\u0E22\u0E2D\u0E14\u0E40\u0E07\u0E34\u0E19\u0E41\u0E25\u0E30\u0E40\u0E07\u0E34\u0E19\u0E17\u0E2D\u0E19</label>
  <label><input type="checkbox" id="s9" style="width:auto" ${cfg.voiceMenu === false ? "" : "checked"}> \u{1F5E3}\uFE0F \u0E1E\u0E39\u0E14\u0E0A\u0E37\u0E48\u0E2D\u0E40\u0E21\u0E19\u0E39\u0E15\u0E2D\u0E19\u0E41\u0E15\u0E30 (\u0E1E\u0E39\u0E14\u0E40\u0E23\u0E47\u0E27)</label>
  <button class="sm" id="s8" style="padding:10px">\u0E17\u0E14\u0E2A\u0E2D\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07</button>
- <details><summary style="color:var(--mute);font-size:13px">\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E1B\u0E31\u0E0D\u0E2B\u0E32 (\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E15\u0E23\u0E27\u0E08\u0E2A\u0E2D\u0E1A)</summary><pre style="font-size:11px;max-height:160px;overflow:auto">${JSON.parse(localStorage.getItem("pos_errlog") || "[]").join("\n") || "\u0E44\u0E21\u0E48\u0E21\u0E35"}</pre></details>
+ <div class="kpi" style="display:grid;gap:8px"><b>\u{1FA7A} \u0E23\u0E32\u0E22\u0E07\u0E32\u0E19\u0E1B\u0E31\u0E0D\u0E2B\u0E32</b><small>\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E2D\u0E31\u0E15\u0E42\u0E19\u0E21\u0E31\u0E15\u0E34\u0E40\u0E21\u0E37\u0E48\u0E2D\u0E41\u0E2D\u0E1B\u0E40\u0E14\u0E49\u0E07\u0E2D\u0E2D\u0E01/\u0E42\u0E2B\u0E25\u0E14\u0E43\u0E2B\u0E21\u0E48\u0E40\u0E2D\u0E07 \u0E2B\u0E23\u0E37\u0E2D\u0E17\u0E33\u0E07\u0E32\u0E19\u0E1C\u0E34\u0E14\u0E1E\u0E25\u0E32\u0E14 \xB7 \u0E41\u0E04\u0E1B\u0E2B\u0E19\u0E49\u0E32\u0E08\u0E2D\u0E2A\u0E48\u0E07\u0E43\u0E2B\u0E49\u0E1C\u0E39\u0E49\u0E14\u0E39\u0E41\u0E25\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22</small>
+ <pre id="errv" style="font-size:13px;max-height:220px;overflow:auto;white-space:pre-wrap;margin:0">${JSON.parse(localStorage.getItem("pos_errlog") || "[]").slice().reverse().map((x, i) => i + 1 + ". " + x).join("\n") || "\u2705 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E1B\u0E31\u0E0D\u0E2B\u0E32"}</pre>
+ <div class="btns" style="margin:0"><button id="errc">\u0E25\u0E49\u0E32\u0E07\u0E23\u0E32\u0E22\u0E07\u0E32\u0E19</button></div></div>
  <label><input type="checkbox" id="s4" style="width:auto" ${cfg.rawbt ? "checked" : ""}> \u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E1C\u0E48\u0E32\u0E19 RawBT (Android + \u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E1E\u0E34\u0E21\u0E1E\u0E4C Bluetooth)</label>
  <button class="sm" id="clr" style="padding:12px;background:var(--bad);color:#fff">\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E1A\u0E34\u0E25\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E17\u0E14\u0E2A\u0E2D\u0E1A)</button></div>`;
   const sv = () => {
@@ -3450,6 +3510,10 @@ function rSet() {
     rSync();
   };
   ["#g1", "#g2", "#g3"].forEach((s) => $(s).onchange = sv);
+  $("#errc").onclick = () => {
+    localStorage.removeItem("pos_errlog");
+    $("#errv").textContent = "\u2705 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E1B\u0E31\u0E0D\u0E2B\u0E32";
+  };
   $("#s8").onclick = () => {
     SND.cash();
     setTimeout(() => say("\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21 45 \u0E1A\u0E32\u0E17 \u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 100 \u0E1A\u0E32\u0E17 \u0E17\u0E2D\u0E19 55 \u0E1A\u0E32\u0E17"), 400);
