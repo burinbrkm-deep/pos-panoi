@@ -201,6 +201,17 @@ table{font-size:13px}td,th{padding:8px}
 }
 @supports not (aspect-ratio:1){.item .ph,.setg img{height:110px}.item .e{height:110px}.item .ph,.item .e{display:block}}
 @supports not (gap:1px){.fab>*+*{margin-left:10px}.fab .t{margin-left:auto!important}.hero .h2>*+*,.mstrip>*+*,.modes>*+*{margin-left:6px}}
+.modes{display:none!important}.cats{display:none!important}
+.grid.fit{overflow:hidden;padding-bottom:4px!important;flex:none!important;align-content:stretch}
+.grid.fit .item{padding:6px!important;min-height:0;overflow:hidden;display:flex;flex-direction:column}
+.grid.fit .item .ph,.grid.fit .item .e{flex:1 1 auto;min-height:0;height:auto!important;aspect-ratio:auto!important;margin-bottom:4px!important;font-size:30px}
+.grid.fit .item .n{font-size:15px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grid.fit .item .row2{margin-top:4px;gap:4px;flex-wrap:nowrap}
+.grid.fit .item .addb{padding:6px 8px!important;font-size:14px!important;white-space:nowrap;flex:1;text-align:center}
+.grid.fit .item .addb.sp{background:#e8590c;flex:0 0 auto}
+.grid.fit .item .p{font-size:16px}
+.item .addb.sp{background:#e8590c;margin-left:4px}
+@media(max-width:760px){.grid.fit .item .n{font-size:14px}.grid.fit .item .addb{padding:5px 6px!important;font-size:13px!important}.grid.fit .item .row2{margin-top:3px}}
 </style></head><body>
 <nav class="top"><div class="logo">🐷</div>
 <button class="on" data-p="sell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>ขาย</button>
@@ -2315,6 +2326,40 @@ function closeTicket() {
   store.set("tickets", tickets);
   rAll();
 }
+function fitGrid() {
+  const g = $("#grid");
+  if (!g || !g.offsetParent) return;
+  const items = g.querySelectorAll(".item");
+  const n = items.length;
+  if (!n) return;
+  const W = g.clientWidth, top = g.getBoundingClientRect().top;
+  let bottom = innerHeight;
+  const fab = $("#fab");
+  if (fab && getComputedStyle(fab).display !== "none") {
+    bottom = Math.min(bottom, fab.getBoundingClientRect().top);
+  }
+  const nav = document.querySelector(".top");
+  if (nav && getComputedStyle(nav).position === "fixed") bottom = Math.min(bottom, nav.getBoundingClientRect().top);
+  const cs = getComputedStyle(g);
+  const H = bottom - top - parseFloat(cs.paddingTop) - 16, gap = parseFloat(cs.rowGap) || 8;
+  let best = null;
+  for (let c = 2; c <= 6; c++) {
+    const r = Math.ceil(n / c), cw = (W - gap * (c - 1)) / c, ch = (H - gap * (r - 1)) / r;
+    if (cw < (W > 600 ? 120 : 150)) continue;
+    const score = Math.min(cw * 0.95, ch);
+    if (!best || score > best.s) best = { c, r, ch, s: score };
+  }
+  if (!best || best.ch < 84) {
+    g.classList.remove("fit");
+    g.style.gridTemplateColumns = "";
+    g.style.gridAutoRows = "";
+    return;
+  }
+  g.style.gridTemplateColumns = `repeat(${best.c},1fr)`;
+  g.style.gridAutoRows = Math.floor(best.ch) + "px";
+  g.classList.add("fit");
+}
+addEventListener("resize", () => setTimeout(fitGrid, 50));
 function rAll() {
   rChs();
   rCart();
@@ -2402,30 +2447,32 @@ function rGrid() {
   const qq = (((_b = $("#q")) == null ? void 0 : _b.value) || "").trim();
   $("#grid").innerHTML = menu.filter((m) => (cat === "\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14" || m.cat === cat) && (!qq || m.name.includes(qq))).map((m) => {
     var _a2;
-    return `<button class="item ${m.soldOut ? "out" : ""} ${inCart[m.id] ? "sel" : ""}" data-id="${m.id}">${m.img && IMG[m.img] ? `<img class="ph" src="${IMG[m.img]}">` : `<span class="e">${m.e || "\u{1F37D}\uFE0F"}</span>`}${!m.top && ((_a2 = m.opts) == null ? void 0 : _a2.length) ? '<span class="more" data-more>\u22EF</span>' : ""}<span class="n">${m.set ? `\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 + <b style="color:var(--acc)">${m.set} \u0E2D\u0E22\u0E48\u0E32\u0E07</b>` : m.all ? `\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 + <b style="color:var(--acc)">\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2D\u0E22\u0E48\u0E32\u0E07</b>` : m.name}</span><span class="row2">${m.top ? sellMode === "split" ? '<span class="p sp">\u0E3F40<small>/\u0E02\u0E35\u0E14</small></span><span class="addb sp">\u2696 \u0E0A\u0E31\u0E48\u0E07\u0E02\u0E32\u0E22</span>' : '<span class="p" style="font-size:14px;color:var(--mute);font-weight:500">\u0E43\u0E2A\u0E48\u0E2B\u0E48\u0E2D</span><span class="addb">+ \u0E43\u0E2A\u0E48\u0E2B\u0E48\u0E2D</span>' : `<span class="p">\u0E3F${fmt(Core.unitPrice(m, [], channel))}</span><span class="addb">+ \u0E40\u0E1E\u0E34\u0E48\u0E21</span>`}</span>${inCart[m.id] ? `<span class="badge">${inCart[m.id]}</span>` : ""}</button>`;
+    return `<button class="item ${m.soldOut ? "out" : ""} ${inCart[m.id] ? "sel" : ""}" data-id="${m.id}">${m.img && IMG[m.img] ? `<img class="ph" src="${IMG[m.img]}">` : `<span class="e">${m.e || "\u{1F37D}\uFE0F"}</span>`}${!m.top && ((_a2 = m.opts) == null ? void 0 : _a2.length) ? '<span class="more" data-more>\u22EF</span>' : ""}<span class="n">${m.set ? `\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 + <b style="color:var(--acc)">${m.set} \u0E2D\u0E22\u0E48\u0E32\u0E07</b>` : m.all ? `\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 + <b style="color:var(--acc)">\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2D\u0E22\u0E48\u0E32\u0E07</b>` : m.name}</span><span class="row2">${m.top ? '<span class="addb" data-act="box">+ \u0E43\u0E2A\u0E48\u0E2B\u0E48\u0E2D</span><span class="addb sp" data-act="split">\u2696 \u0E41\u0E22\u0E01</span>' : `<span class="p">\u0E3F${fmt(Core.unitPrice(m, [], channel))}</span><span class="addb">+ \u0E40\u0E1E\u0E34\u0E48\u0E21</span>`}</span>${inCart[m.id] ? `<span class="badge">${inCart[m.id]}</span>` : ""}</button>`;
   }).join("");
   badges();
+  setTimeout(fitGrid, 0);
   $("#grid").querySelectorAll(".item").forEach((b) => {
     const m = menu.find((x) => x.id === b.dataset.id);
-    b.onclick = (e) => e.target.dataset.more !== void 0 ? m.top ? weightModal(m) : optAdd(m) : quickAdd(m);
-    b.oncontextmenu = (e) => {
-      e.preventDefault();
-      optAdd(m);
-    };
-    let t;
-    b.ontouchstart = () => t = setTimeout(() => {
-      b._lp = 1;
-      optAdd(m);
-    }, 450);
-    b.ontouchend = (e) => {
-      clearTimeout(t);
-      if (b._lp) {
-        e.preventDefault();
-        b._lp = 0;
-      }
+    b.onclick = (e) => {
+      if (Date.now() - lastScroll < 350) return;
+      const a = e.target.closest("[data-act]");
+      if (m.top && a && a.dataset.act === "split") return weightModal(m);
+      if (e.target.dataset.more !== void 0 && !m.top) return optAdd(m);
+      quickAdd(m);
     };
   });
 }
+let lastScroll = 0, tsY = null, tsX = null;
+document.addEventListener("touchstart", (e) => {
+  const t = e.touches[0];
+  tsX = t.clientX;
+  tsY = t.clientY;
+}, { passive: true, capture: true });
+document.addEventListener("touchmove", (e) => {
+  if (tsY === null) return;
+  const t = e.touches[0];
+  if (Math.abs(t.clientY - tsY) > 8 || Math.abs(t.clientX - tsX) > 8) lastScroll = Date.now();
+}, { passive: true, capture: true });
 const TOPS = () => menu.filter((m) => m.top).map((m) => m.id);
 const NAMES = () => Object.fromEntries(menu.map((m) => [m.id, m.name]));
 function curBox() {
@@ -2489,7 +2536,6 @@ function quickAdd(m) {
   if (m.rice) return riceModal();
   if (m.top) {
     (_a = navigator.vibrate) == null ? void 0 : _a.call(navigator, 15);
-    if (sellMode === "split") return weightModal(m);
     return curBox() ? toggleTop(m.id) : newBox(m.id);
   }
   const el = document.querySelector(`#grid [data-id="${m.id}"]`);
@@ -2670,6 +2716,7 @@ function rChs() {
   });
 }
 function rCart() {
+  setTimeout(fitGrid, 0);
   save();
   rTickets();
   const T = Core.totals(cart, channel, discount);
