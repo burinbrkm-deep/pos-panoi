@@ -234,6 +234,7 @@ table{font-size:13px}td,th{padding:8px}
 @media(min-width:900px){.wrap,.wrap.page.on{grid-template-columns:1fr 310px!important}.grid{grid-template-columns:repeat(4,1fr)!important;gap:10px!important}
 .rh{padding:10px 12px 0!important}.tks{padding:8px 12px 4px!important}.ch{padding:8px 12px!important}.lines{padding:0 12px!important}.sum{padding:10px 12px!important}.act{padding:0 12px 12px!important}
 .ch button{font-size:11px!important}.tk .nm{max-width:70px}}
+html,body{overscroll-behavior:none;overscroll-behavior-y:none}.left,.right,.lines,.grid,.page,.box{overscroll-behavior:contain}
 </style></head><body>
 <nav class="top"><div class="logo">🐷</div>
 <button class="on" data-p="sell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>ขาย</button>
@@ -2511,6 +2512,8 @@ function newBox(first) {
   rHero();
 }
 function toggleTop(id) {
+  const was = (curBox() || { items: [] }).items.includes(id);
+  sayMenu((was ? "\u0E40\u0E2D\u0E32" : "") + (NAMES()[id] || "") + (was ? "\u0E2D\u0E2D\u0E01" : ""));
   cart = Core.boxToggle(cart, activeKey, id, TOPS(), NAMES(), channel).map((l) => l.key === activeKey && l.extra ? __spreadProps(__spreadValues({}, l), { name: l.name + ` (\u0E02\u0E49\u0E32\u0E27\u0E40\u0E1E\u0E34\u0E48\u0E21 \u0E3F${l.extra})` }) : l);
   rCart();
   rGrid();
@@ -2575,6 +2578,7 @@ function quickAdd(m) {
 }
 function add(m, o, q, n) {
   try {
+    sayMenu(String(m.name || "").replace(/ \(.*\)$/, ""));
     cart = Core.addLine(cart, m, o, q, n, channel);
     rCart();
     rGrid();
@@ -3068,6 +3072,16 @@ async function shareSlips(slips, code) {
   toast('\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E19\u0E35\u0E49\u0E41\u0E0A\u0E23\u0E4C\u0E23\u0E39\u0E1B\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \xB7 \u0E01\u0E14\u0E04\u0E49\u0E32\u0E07\u0E17\u0E35\u0E48\u0E23\u0E39\u0E1B\u0E43\u0E1A\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E41\u0E25\u0E49\u0E27\u0E40\u0E25\u0E37\u0E2D\u0E01 "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E23\u0E39\u0E1B" \u0E41\u0E17\u0E19');
   return false;
 }
+function logErr(w, e) {
+  try {
+    const l = JSON.parse(localStorage.getItem("pos_errlog") || "[]");
+    l.push((/* @__PURE__ */ new Date()).toLocaleString("th-TH") + " " + w + ": " + (e && e.message || e));
+    localStorage.setItem("pos_errlog", JSON.stringify(l.slice(-20)));
+  } catch (_) {
+  }
+}
+window.addEventListener("error", (e) => logErr("error", e.error || e.message));
+window.addEventListener("unhandledrejection", (e) => logErr("promise", e.reason));
 let AC = null;
 function tone(f, d, t = 0, type = "sine", v = 0.18) {
   try {
@@ -3107,17 +3121,29 @@ try {
   speechSynthesis.onvoiceschanged = pickVoice;
 } catch (e) {
 }
-function say(t) {
+let sayT = null;
+function say(t, fast) {
   try {
     if (cfg.voice === false || !window.speechSynthesis) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(t);
-    u.lang = "th-TH";
-    if (thVoice) u.voice = thVoice;
-    u.rate = 1.05;
-    speechSynthesis.speak(u);
+    clearTimeout(sayT);
+    sayT = setTimeout(() => {
+      try {
+        if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(t);
+        u.lang = "th-TH";
+        if (thVoice) u.voice = thVoice;
+        u.rate = fast ? 1.6 : 1.1;
+        speechSynthesis.speak(u);
+      } catch (e) {
+        logErr("say", e);
+      }
+    }, fast ? 60 : 0);
   } catch (e) {
   }
+}
+function sayMenu(t) {
+  if (cfg.voiceMenu === false) return;
+  say(t, true);
 }
 const baht = (n) => fmt(n).replace(/,/g, "") + " \u0E1A\u0E32\u0E17";
 let syncing = false, syncErr = "", lastSync = store.get("lastSync", "");
@@ -3403,7 +3429,9 @@ function rSet() {
  <label><input type="checkbox" id="s3" style="width:auto" ${cfg.kitchen ? "checked" : ""}> \u0E1B\u0E23\u0E34\u0E49\u0E19\u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E04\u0E23\u0E31\u0E27\u0E01\u0E48\u0E2D\u0E19\u0E43\u0E1A\u0E40\u0E2A\u0E23\u0E47\u0E08</label>
  <label><input type="checkbox" id="s6" style="width:auto" ${cfg.snd === false ? "" : "checked"}> \u{1F514} \u0E40\u0E2A\u0E35\u0E22\u0E07\u0E41\u0E15\u0E30\u0E40\u0E21\u0E19\u0E39 / \u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E01\u0E47\u0E1A\u0E40\u0E07\u0E34\u0E19</label>
  <label><input type="checkbox" id="s7" style="width:auto" ${cfg.voice === false ? "" : "checked"}> \u{1F5E3}\uFE0F \u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14\u0E1A\u0E2D\u0E01\u0E22\u0E2D\u0E14\u0E40\u0E07\u0E34\u0E19\u0E41\u0E25\u0E30\u0E40\u0E07\u0E34\u0E19\u0E17\u0E2D\u0E19</label>
+ <label><input type="checkbox" id="s9" style="width:auto" ${cfg.voiceMenu === false ? "" : "checked"}> \u{1F5E3}\uFE0F \u0E1E\u0E39\u0E14\u0E0A\u0E37\u0E48\u0E2D\u0E40\u0E21\u0E19\u0E39\u0E15\u0E2D\u0E19\u0E41\u0E15\u0E30 (\u0E1E\u0E39\u0E14\u0E40\u0E23\u0E47\u0E27)</label>
  <button class="sm" id="s8" style="padding:10px">\u0E17\u0E14\u0E2A\u0E2D\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07</button>
+ <details><summary style="color:var(--mute);font-size:13px">\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E1B\u0E31\u0E0D\u0E2B\u0E32 (\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E15\u0E23\u0E27\u0E08\u0E2A\u0E2D\u0E1A)</summary><pre style="font-size:11px;max-height:160px;overflow:auto">${JSON.parse(localStorage.getItem("pos_errlog") || "[]").join("\n") || "\u0E44\u0E21\u0E48\u0E21\u0E35"}</pre></details>
  <label><input type="checkbox" id="s4" style="width:auto" ${cfg.rawbt ? "checked" : ""}> \u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E1C\u0E48\u0E32\u0E19 RawBT (Android + \u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E1E\u0E34\u0E21\u0E1E\u0E4C Bluetooth)</label>
  <button class="sm" id="clr" style="padding:12px;background:var(--bad);color:#fff">\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E1A\u0E34\u0E25\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E17\u0E14\u0E2A\u0E2D\u0E1A)</button></div>`;
   const sv = () => {
@@ -3412,6 +3440,7 @@ function rSet() {
     cfg.kitchen = $("#s3").checked;
     cfg.snd = $("#s6").checked;
     cfg.voice = $("#s7").checked;
+    cfg.voiceMenu = $("#s9").checked;
     cfg.rawbt = $("#s4").checked;
     cfg.pp = $("#s5").value.replace(/\D/g, "");
     cfg.gs = $("#g1").value.trim();
@@ -3446,7 +3475,7 @@ function rSet() {
     sv();
     sync();
   };
-  ["#s1", "#s2", "#s3", "#s4", "#s5", "#s6", "#s7"].forEach((s) => $(s).onchange = sv);
+  ["#s1", "#s2", "#s3", "#s4", "#s5", "#s6", "#s7", "#s9"].forEach((s) => $(s).onchange = sv);
   $("#p-set").querySelectorAll("[data-w]").forEach((b) => b.onclick = () => {
     cfg.width = +b.dataset.w;
     store.set("cfg2", cfg);
