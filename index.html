@@ -164,6 +164,7 @@ body.cart .right{display:flex}
 .mstrip{display:flex;gap:6px;overflow-x:auto;padding-bottom:10px}.mstrip button{flex-shrink:0;background:#fff;border:1.5px solid var(--line);padding:7px 10px;font-size:13px;display:flex;align-items:center;gap:6px}.mstrip .mn{color:#fff;border-radius:7px;padding:1px 6px;font-weight:600}.mstrip button.on{border-color:var(--acc);background:var(--acc2)}.mstrip .sep{width:1px;background:var(--line);flex-shrink:0}.mstrip select{font:inherit;font-size:13px;border:1.5px solid var(--line);border-radius:12px;padding:0 8px;background:#fff}
 .rclose{display:grid;place-items:center;width:40px;height:40px;background:var(--bg);font-size:20px}
 .fab{display:flex;position:fixed;left:12px;right:12px;bottom:76px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:6;background:var(--acc);color:#fff;padding:14px 18px;border-radius:18px;align-items:center;gap:10px;font-size:16px;box-shadow:0 8px 24px #169c5250}
+.fab{width:calc(100% - 24px);box-sizing:border-box}.fab .t{white-space:nowrap}
 .fab:not(.empty){background:#1d4ed8!important;box-shadow:0 8px 24px #1d4ed855!important;font-size:20px!important;font-weight:600;padding:16px 18px!important}.fab:not(.empty) .c{color:#1d4ed8!important;min-width:36px!important;height:36px!important;font-size:20px}.fab:not(.empty) .t{color:#fde047;font-size:26px!important;font-weight:700}
 .fab .c{background:#fff;color:var(--acc);border-radius:10px;min-width:30px;height:30px;display:grid;place-items:center;font-weight:600}
 .fab .t{margin-left:auto;font-weight:600;font-size:18px}
