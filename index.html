@@ -2559,6 +2559,7 @@ function quickAdd(m) {
   if (m.rice) return riceModal();
   if (m.top) {
     (_a = navigator.vibrate) == null ? void 0 : _a.call(navigator, 15);
+    SND.tap();
     if (sellMode === "split") return weightModal(m);
     return curBox() ? toggleTop(m.id) : newBox(m.id);
   }
@@ -2569,6 +2570,7 @@ function quickAdd(m) {
     el.classList.add("pop");
   }
   (_b = navigator.vibrate) == null ? void 0 : _b.call(navigator, 15);
+  SND.tap();
   add(m, [], 1, "");
 }
 function add(m, o, q, n) {
@@ -2824,6 +2826,8 @@ const _noDisc = () => {
 $("#bPay").onclick = () => {
   save();
   const T = Core.totals(cart, channel, discount);
+  SND.open();
+  say("\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21 " + baht(T.total));
   let pay = Core.CHANNELS[channel].app ? "app" : "cash";
   let rec = null;
   const draw = () => {
@@ -2883,7 +2887,10 @@ $("#bPay").onclick = () => {
       let r = T.total;
       if (pay === "cash") {
         const v = Core.validateCash(T.total, rec);
-        if (!v.ok) return toast(v.msg);
+        if (!v.ok) {
+          SND.err();
+          return toast(v.msg);
+        }
         r = rec;
       }
       const tk = tickets[cur];
@@ -2902,6 +2909,8 @@ $("#bPay").onclick = () => {
       b.dirty = 1;
       bills.push(b);
       store.set("bills", bills);
+      SND.cash();
+      say(b.pay === "cash" ? b.change ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 " + baht(b.received) + " \u0E17\u0E2D\u0E19 " + baht(b.change) : "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E1E\u0E2D\u0E14\u0E35 \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : b.pay === "qr" ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E42\u0E2D\u0E19 " + baht(b.totals.total) + " \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : "\u0E1B\u0E34\u0E14\u0E1A\u0E34\u0E25\u0E40\u0E23\u0E35\u0E22\u0E1A\u0E23\u0E49\u0E2D\u0E22");
       setTimeout(sync, 300);
       closeM();
       closeTicket();
@@ -3059,6 +3068,58 @@ async function shareSlips(slips, code) {
   toast('\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E19\u0E35\u0E49\u0E41\u0E0A\u0E23\u0E4C\u0E23\u0E39\u0E1B\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \xB7 \u0E01\u0E14\u0E04\u0E49\u0E32\u0E07\u0E17\u0E35\u0E48\u0E23\u0E39\u0E1B\u0E43\u0E1A\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E41\u0E25\u0E49\u0E27\u0E40\u0E25\u0E37\u0E2D\u0E01 "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E23\u0E39\u0E1B" \u0E41\u0E17\u0E19');
   return false;
 }
+let AC = null;
+function tone(f, d, t = 0, type = "sine", v = 0.18) {
+  try {
+    if (cfg.snd === false) return;
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === "suspended") AC.resume();
+    const o = AC.createOscillator(), g = AC.createGain(), s = AC.currentTime + t;
+    o.type = type;
+    o.frequency.value = f;
+    g.gain.setValueAtTime(v, s);
+    g.gain.exponentialRampToValueAtTime(1e-3, s + d);
+    o.connect(g);
+    g.connect(AC.destination);
+    o.start(s);
+    o.stop(s + d);
+  } catch (e) {
+  }
+}
+const SND = { tap: () => tone(880, 0.06, 0, "sine", 0.12), remove: () => tone(330, 0.08, 0, "triangle", 0.12), cash: () => {
+  tone(1319, 0.12);
+  tone(1760, 0.25, 0.09);
+  tone(2637, 0.35, 0.17, "sine", 0.1);
+}, err: () => {
+  tone(220, 0.12, 0, "square", 0.08);
+  tone(180, 0.18, 0.13, "square", 0.08);
+}, open: () => tone(660, 0.08, 0, "sine", 0.12) };
+let thVoice = null;
+function pickVoice() {
+  try {
+    const v = speechSynthesis.getVoices();
+    thVoice = v.find((x) => /^th/i.test(x.lang)) || null;
+  } catch (e) {
+  }
+}
+try {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+} catch (e) {
+}
+function say(t) {
+  try {
+    if (cfg.voice === false || !window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = "th-TH";
+    if (thVoice) u.voice = thVoice;
+    u.rate = 1.05;
+    speechSynthesis.speak(u);
+  } catch (e) {
+  }
+}
+const baht = (n) => fmt(n).replace(/,/g, "") + " \u0E1A\u0E32\u0E17";
 let syncing = false, syncErr = "", lastSync = store.get("lastSync", "");
 function rSync() {
   const el = $("#sync");
@@ -3340,12 +3401,17 @@ function rSet() {
  <label>\u0E40\u0E1A\u0E2D\u0E23\u0E4C / \u0E40\u0E25\u0E02\u0E1A\u0E31\u0E15\u0E23 \u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E40\u0E1E\u0E22\u0E4C (\u0E43\u0E2A\u0E48\u0E40\u0E1A\u0E2D\u0E23\u0E4C\u0E08\u0E23\u0E34\u0E07\u0E02\u0E2D\u0E07\u0E23\u0E49\u0E32\u0E19)<input id="s5" inputmode="numeric" value="${cfg.pp || ""}" placeholder="\u0E40\u0E1A\u0E2D\u0E23\u0E4C\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E40\u0E1E\u0E22\u0E4C 10 \u0E2B\u0E25\u0E31\u0E01"></label>
  <label>\u0E02\u0E19\u0E32\u0E14\u0E01\u0E23\u0E30\u0E14\u0E32\u0E29<div class="tabs"><button data-w="32" class="${cfg.width == 32 ? "on" : ""}">58 \u0E21\u0E21.</button><button data-w="48" class="${cfg.width == 48 ? "on" : ""}">80 \u0E21\u0E21.</button></div></label>
  <label><input type="checkbox" id="s3" style="width:auto" ${cfg.kitchen ? "checked" : ""}> \u0E1B\u0E23\u0E34\u0E49\u0E19\u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E04\u0E23\u0E31\u0E27\u0E01\u0E48\u0E2D\u0E19\u0E43\u0E1A\u0E40\u0E2A\u0E23\u0E47\u0E08</label>
+ <label><input type="checkbox" id="s6" style="width:auto" ${cfg.snd === false ? "" : "checked"}> \u{1F514} \u0E40\u0E2A\u0E35\u0E22\u0E07\u0E41\u0E15\u0E30\u0E40\u0E21\u0E19\u0E39 / \u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E01\u0E47\u0E1A\u0E40\u0E07\u0E34\u0E19</label>
+ <label><input type="checkbox" id="s7" style="width:auto" ${cfg.voice === false ? "" : "checked"}> \u{1F5E3}\uFE0F \u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14\u0E1A\u0E2D\u0E01\u0E22\u0E2D\u0E14\u0E40\u0E07\u0E34\u0E19\u0E41\u0E25\u0E30\u0E40\u0E07\u0E34\u0E19\u0E17\u0E2D\u0E19</label>
+ <button class="sm" id="s8" style="padding:10px">\u0E17\u0E14\u0E2A\u0E2D\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07</button>
  <label><input type="checkbox" id="s4" style="width:auto" ${cfg.rawbt ? "checked" : ""}> \u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E1C\u0E48\u0E32\u0E19 RawBT (Android + \u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E1E\u0E34\u0E21\u0E1E\u0E4C Bluetooth)</label>
  <button class="sm" id="clr" style="padding:12px;background:var(--bad);color:#fff">\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E1A\u0E34\u0E25\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E17\u0E14\u0E2A\u0E2D\u0E1A)</button></div>`;
   const sv = () => {
     cfg.name = $("#s1").value;
     cfg.sub = $("#s2").value;
     cfg.kitchen = $("#s3").checked;
+    cfg.snd = $("#s6").checked;
+    cfg.voice = $("#s7").checked;
     cfg.rawbt = $("#s4").checked;
     cfg.pp = $("#s5").value.replace(/\D/g, "");
     cfg.gs = $("#g1").value.trim();
@@ -3355,6 +3421,11 @@ function rSet() {
     rSync();
   };
   ["#g1", "#g2", "#g3"].forEach((s) => $(s).onchange = sv);
+  $("#s8").onclick = () => {
+    SND.cash();
+    setTimeout(() => say("\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21 45 \u0E1A\u0E32\u0E17 \u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 100 \u0E1A\u0E32\u0E17 \u0E17\u0E2D\u0E19 55 \u0E1A\u0E32\u0E17"), 400);
+    if (cfg.voice !== false && !thVoice) setTimeout(() => toast("\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22 \xB7 \u0E15\u0E34\u0E14\u0E15\u0E31\u0E49\u0E07 Google Text-to-Speech"), 900);
+  };
   $("#gt").onclick = async () => {
     sv();
     $("#gr").textContent = "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E17\u0E14\u0E2A\u0E2D\u0E1A...";
@@ -3375,7 +3446,7 @@ function rSet() {
     sv();
     sync();
   };
-  ["#s1", "#s2", "#s3", "#s4", "#s5"].forEach((s) => $(s).onchange = sv);
+  ["#s1", "#s2", "#s3", "#s4", "#s5", "#s6", "#s7"].forEach((s) => $(s).onchange = sv);
   $("#p-set").querySelectorAll("[data-w]").forEach((b) => b.onclick = () => {
     cfg.width = +b.dataset.w;
     store.set("cfg2", cfg);
