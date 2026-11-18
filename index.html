@@ -224,6 +224,13 @@ table{font-size:13px}td,th{padding:8px}
 .modes{margin-bottom:8px}.modes button{min-height:46px!important;padding:6px 12px!important}
 .cats{padding-bottom:8px}.cats button{padding:7px 14px!important}
 }
+@media(min-width:761px){
+.hdr{display:none!important}.rh .sync{margin-left:auto;padding:4px 8px;font-size:12px}.rh>b{display:none}.rh{gap:6px}
+.left{padding-top:10px!important}
+.modes{gap:6px!important;margin-bottom:6px!important}.modes button{min-height:36px!important;padding:4px 12px!important;justify-content:center;border-width:1.5px!important}
+.modes small{display:none!important}.modes span{font-size:18px!important}.modes b{font-size:15px!important}
+.cats{padding-bottom:6px!important}.cats button{padding:5px 12px!important;flex-direction:row!important;align-items:center;gap:6px}.cats button small{display:none!important}
+}
 </style></head><body>
 <nav class="top"><div class="logo">🐷</div>
 <button class="on" data-p="sell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>ขาย</button>
@@ -2777,7 +2784,7 @@ function rCart() {
     rCart();
     rGrid();
   });
-  $("#sum").innerHTML = `<div class="row"><span>\u0E23\u0E27\u0E21 ${T.count} \u0E0A\u0E34\u0E49\u0E19</span><span>\u0E3F${fmt(T.subtotal)}</span></div>${T.pack ? `<div class="row"><span>\u0E04\u0E48\u0E32\u0E01\u0E25\u0E48\u0E2D\u0E07</span><span>\u0E3F${fmt(T.pack)}</span></div>` : ""}${T.discount ? `<div class="row" style="color:var(--bad)"><span>\u0E2A\u0E48\u0E27\u0E19\u0E25\u0E14</span><span>-\u0E3F${fmt(T.discount)}</span></div>` : ""}<div class="row big"><span>\u0E2A\u0E38\u0E17\u0E18\u0E34</span><span>\u0E3F${fmt(T.total)}</span></div><small style="color:var(--mute)">\u0E1A\u0E34\u0E25 ${Core.billCode(today(), tickets[cur].no)}${tickets[cur].name ? " \xB7 " + tickets[cur].name : ""} \xB7 \u0E40\u0E1B\u0E34\u0E14\u0E15\u0E2D\u0E19 ${tickets[cur].opened}</small>`;
+  $("#sum").innerHTML = `<div class="row"><span>\u0E23\u0E27\u0E21 ${T.count} \u0E0A\u0E34\u0E49\u0E19</span><span>\u0E3F${fmt(T.subtotal)}</span></div>${T.pack ? `<div class="row"><span>\u0E04\u0E48\u0E32\u0E01\u0E25\u0E48\u0E2D\u0E07</span><span>\u0E3F${fmt(T.pack)}</span></div>` : ""}${T.discount ? `<div class="row" style="color:var(--bad)"><span>\u0E2A\u0E48\u0E27\u0E19\u0E25\u0E14</span><span>-\u0E3F${fmt(T.discount)}</span></div>` : ""}<div class="row big"><span>\u0E2A\u0E38\u0E17\u0E18\u0E34</span><span>\u0E3F${fmt(T.total)}</span></div><small style="color:var(--mute)">\u0E1A\u0E34\u0E25 ${Core.billCode(today(), tickets[cur].no)}${tickets[cur].name ? " \xB7 " + tickets[cur].name : ""} \xB7 ${(/* @__PURE__ */ new Date()).toLocaleDateString("th-TH", { weekday: "short", day: "numeric", month: "short" })} ${tickets[cur].opened}</small>`;
   $("#bPay").disabled = !cart.length;
 }
 $("#bClear").onclick = () => {
@@ -3405,6 +3412,10 @@ try {
 if (!tickets.length) newTicket();
 load(tickets.length - 1);
 setTimeout(() => {
+  if (innerWidth > 760) {
+    const s = $("#sync"), rh = document.querySelector(".rh");
+    if (s && rh) rh.appendChild(s);
+  }
   rSync();
   sync();
   $("#sync").onclick = () => cfg.gs ? sync() : document.querySelector(".top button[data-p=set]").click();
