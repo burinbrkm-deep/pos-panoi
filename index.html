@@ -235,6 +235,19 @@ table{font-size:13px}td,th{padding:8px}
 .rh{padding:10px 12px 0!important}.tks{padding:8px 12px 4px!important}.ch{padding:8px 12px!important}.lines{padding:0 12px!important}.sum{padding:10px 12px!important}.act{padding:0 12px 12px!important}
 .ch button{font-size:11px!important}.tk .nm{max-width:70px}}
 html,body{overscroll-behavior:none;overscroll-behavior-y:none}.left,.right,.lines,.grid,.page,.box{overscroll-behavior:contain}
+
+.paybox{width:min(560px,96vw);max-height:96vh;max-height:96dvh;padding:14px 16px!important;overflow:auto}
+.paybox h3{margin:0 0 8px!important}.paybox .tabs{margin-bottom:8px}.paybox .tabs button{padding:9px}
+.paybox .cash{margin:0 0 8px;gap:6px}.paybox .cash button{padding:10px 4px;font-size:17px}
+.paybox input.np{padding:8px 12px;font-size:26px}
+.paybox .chg{font-size:24px;margin:6px 0 0;min-height:30px}.paybox .chg small{font-size:12px}
+.paybox .pad{margin:0;gap:6px}.paybox .pad button{height:min(54px,7.5vh);font-size:24px}
+.paybox .btns{margin-top:10px}.paybox .btns button{padding:12px}.paybox .btns .p{font-size:17px;font-weight:600;flex:2}
+.paybox .qr{padding:12px}.paybox #qrbox svg{width:min(200px,32vh);height:auto}
+@media(min-width:600px) and (orientation:landscape){.paybox{width:min(820px,96vw)}.pcols{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}.paybox .pad button{height:min(58px,10vh)}}
+@media(max-height:640px){.paybox{padding:10px 12px!important}.paybox h3{margin-bottom:4px!important}.paybox .tabs{margin-bottom:6px}.paybox .tabs button{padding:6px}.paybox input.np{padding:5px 10px;font-size:22px}.paybox .chg{font-size:20px;min-height:24px;margin-top:4px}}
+@media(max-height:560px){.paybox h3 span:last-child{font-size:24px!important}.paybox .pad button{height:40px;font-size:20px}.paybox .cash button{padding:7px 2px;font-size:15px}.paybox .btns{margin-top:6px}.paybox .btns button{padding:9px}}
+#bignote{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%) scale(.9);background:#1d4ed8;color:#fff;font-size:30px;font-weight:700;padding:18px 26px;border-radius:20px;box-shadow:0 20px 50px #0005;z-index:30;opacity:0;pointer-events:none;transition:.15s;text-align:center;max-width:90vw}#bignote.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 </style></head><body>
 <nav class="top"><div class="logo">🐷</div>
 <button class="on" data-p="sell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>ขาย</button>
@@ -2400,8 +2413,10 @@ function toast(t) {
   clearTimeout(e._t);
   e._t = setTimeout(() => e.style.display = "none", 1800);
 }
-function modal(html) {
-  $("#mb").innerHTML = html;
+function modal(html, cls) {
+  const mb = $("#mb");
+  mb.className = "box" + (cls ? " " + cls : "");
+  mb.innerHTML = html;
   $("#m").classList.add("on");
 }
 function closeM() {
@@ -2834,13 +2849,13 @@ $("#bPay").onclick = () => {
   save();
   const T = Core.totals(cart, channel, discount);
   SND.open();
-  say("\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21 " + baht(T.total));
+  sayMoney("\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21 " + baht(T.total));
   let pay = Core.CHANNELS[channel].app ? "app" : "cash";
   let rec = null;
   const draw = () => {
     modal(`<h3 style="display:flex;justify-content:space-between;align-items:baseline"><span>\u0E1A\u0E34\u0E25 ${Core.billCode(today(), tickets[cur].no)}</span><span style="font-size:32px;font-weight:700">\u0E3F${fmt(T.total)}</span></h3><div class="tabs"><button data-p="cash" class="${pay === "cash" ? "on" : ""}">\u0E40\u0E07\u0E34\u0E19\u0E2A\u0E14</button><button data-p="qr" class="${pay === "qr" ? "on" : ""}">\u0E42\u0E2D\u0E19 / QR</button>${Core.CHANNELS[channel].app ? `<button data-p="app" class="${pay === "app" ? "on" : ""}">\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E2D\u0E1B</button>` : ""}</div>
- ${pay === "cash" ? `<div class="cash">${Core.quickCash(T.total).map((v) => `<button data-v="${v}">\u0E3F${fmt(v)}</button>`).join("")}</div><input id="rv" class="np" inputmode="none" placeholder="\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E21\u0E32 (\u0E01\u0E14\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02\u0E14\u0E49\u0E32\u0E19\u0E25\u0E48\u0E32\u0E07)" value="${rec != null ? rec : ""}">${pad()}<div class="chg" id="cv"></div>` : pay === "qr" ? `<div class="qr"><div id="qrbox" style="display:inline-block;background:#fff;padding:10px;border-radius:12px"></div><br><b style="font-size:30px;color:var(--ink)">\u0E3F${fmt(T.total)}</b><br><small>\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E40\u0E1E\u0E22\u0E4C ${cfg.pp || "0812345678 (\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07 \u2014 \u0E43\u0E2A\u0E48\u0E40\u0E1A\u0E2D\u0E23\u0E4C\u0E08\u0E23\u0E34\u0E07\u0E43\u0E19\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32)"}</small></div>` : `<div class="qr">\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E0A\u0E33\u0E23\u0E30\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E2D\u0E1B\u0E40\u0E14\u0E25\u0E34\u0E40\u0E27\u0E2D\u0E23\u0E35\u0E41\u0E25\u0E49\u0E27<br><small>\u0E44\u0E21\u0E48\u0E15\u0E49\u0E2D\u0E07\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E17\u0E35\u0E48\u0E23\u0E49\u0E32\u0E19</small></div>`}
- <div class="btns"><button onclick="closeM()">\u0E01\u0E25\u0E31\u0E1A</button><button class="p" id="done" disabled>\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19 & \u0E1B\u0E23\u0E34\u0E49\u0E19</button></div>`);
+ ${pay === "cash" ? `<div class="pcols"><div class="pl"><div class="cash">${Core.quickCash(T.total).map((v) => `<button data-v="${v}">\u0E3F${fmt(v)}</button>`).join("")}</div><input id="rv" class="np" inputmode="none" placeholder="\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E21\u0E32" value="${rec != null ? rec : ""}"><div class="chg" id="cv"></div></div><div class="pr">${pad()}</div></div>` : pay === "qr" ? `<div class="qr"><div id="qrbox" style="display:inline-block;background:#fff;padding:10px;border-radius:12px"></div><br><b style="font-size:30px;color:var(--ink)">\u0E3F${fmt(T.total)}</b><br><small>\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E40\u0E1E\u0E22\u0E4C ${cfg.pp || "0812345678 (\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07 \u2014 \u0E43\u0E2A\u0E48\u0E40\u0E1A\u0E2D\u0E23\u0E4C\u0E08\u0E23\u0E34\u0E07\u0E43\u0E19\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32)"}</small></div>` : `<div class="qr">\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E0A\u0E33\u0E23\u0E30\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E2D\u0E1B\u0E40\u0E14\u0E25\u0E34\u0E40\u0E27\u0E2D\u0E23\u0E35\u0E41\u0E25\u0E49\u0E27<br><small>\u0E44\u0E21\u0E48\u0E15\u0E49\u0E2D\u0E07\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E17\u0E35\u0E48\u0E23\u0E49\u0E32\u0E19</small></div>`}
+ <div class="btns"><button onclick="closeM()">\u0E01\u0E25\u0E31\u0E1A</button><button class="p" id="done" disabled>\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19 & \u0E1B\u0E23\u0E34\u0E49\u0E19</button></div>`, "paybox");
     $("#mb").querySelectorAll(".tabs button").forEach((b) => b.onclick = () => {
       pay = b.dataset.p;
       draw();
@@ -2918,7 +2933,7 @@ $("#bPay").onclick = () => {
       bills.push(b);
       store.set("bills", bills);
       SND.cash();
-      say(b.pay === "cash" ? b.change ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 " + baht(b.received) + " \u0E17\u0E2D\u0E19 " + baht(b.change) : "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E1E\u0E2D\u0E14\u0E35 \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : b.pay === "qr" ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E42\u0E2D\u0E19 " + baht(b.totals.total) + " \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : "\u0E1B\u0E34\u0E14\u0E1A\u0E34\u0E25\u0E40\u0E23\u0E35\u0E22\u0E1A\u0E23\u0E49\u0E2D\u0E22");
+      sayMoney(b.pay === "cash" ? b.change ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 " + baht(b.received) + " \u0E17\u0E2D\u0E19 " + baht(b.change) : "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E1E\u0E2D\u0E14\u0E35 \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : b.pay === "qr" ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E42\u0E2D\u0E19 " + baht(b.totals.total) + " \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : "\u0E1B\u0E34\u0E14\u0E1A\u0E34\u0E25\u0E40\u0E23\u0E35\u0E22\u0E1A\u0E23\u0E49\u0E2D\u0E22");
       setTimeout(sync, 300);
       closeM();
       closeTicket();
@@ -3194,6 +3209,25 @@ function say(t, fast) {
     }, fast ? 60 : 0);
   } catch (e) {
   }
+}
+function bigNote(t) {
+  try {
+    let el = document.getElementById("bignote");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "bignote";
+      document.body.appendChild(el);
+    }
+    el.textContent = t;
+    el.classList.add("on");
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove("on"), 2600);
+  } catch (e) {
+  }
+}
+function sayMoney(t) {
+  say(t);
+  if (!thVoice || cfg.voice === false) bigNote(t);
 }
 function sayMenu(t) {
   if (cfg.voiceMenu === false) return;
@@ -3489,6 +3523,7 @@ function rSet() {
  <label><input type="checkbox" id="s7" style="width:auto" ${cfg.voice === false ? "" : "checked"}> \u{1F5E3}\uFE0F \u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14\u0E1A\u0E2D\u0E01\u0E22\u0E2D\u0E14\u0E40\u0E07\u0E34\u0E19\u0E41\u0E25\u0E30\u0E40\u0E07\u0E34\u0E19\u0E17\u0E2D\u0E19</label>
  <label><input type="checkbox" id="s9" style="width:auto" ${cfg.voiceMenu === false ? "" : "checked"}> \u{1F5E3}\uFE0F \u0E1E\u0E39\u0E14\u0E0A\u0E37\u0E48\u0E2D\u0E40\u0E21\u0E19\u0E39\u0E15\u0E2D\u0E19\u0E41\u0E15\u0E30 (\u0E1E\u0E39\u0E14\u0E40\u0E23\u0E47\u0E27)</label>
  <button class="sm" id="s8" style="padding:10px">\u0E17\u0E14\u0E2A\u0E2D\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07</button>
+ <small id="vstat" style="color:var(--mute)"></small>
  <div class="kpi" style="display:grid;gap:8px"><b>\u{1FA7A} \u0E23\u0E32\u0E22\u0E07\u0E32\u0E19\u0E1B\u0E31\u0E0D\u0E2B\u0E32</b><small>\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E2D\u0E31\u0E15\u0E42\u0E19\u0E21\u0E31\u0E15\u0E34\u0E40\u0E21\u0E37\u0E48\u0E2D\u0E41\u0E2D\u0E1B\u0E40\u0E14\u0E49\u0E07\u0E2D\u0E2D\u0E01/\u0E42\u0E2B\u0E25\u0E14\u0E43\u0E2B\u0E21\u0E48\u0E40\u0E2D\u0E07 \u0E2B\u0E23\u0E37\u0E2D\u0E17\u0E33\u0E07\u0E32\u0E19\u0E1C\u0E34\u0E14\u0E1E\u0E25\u0E32\u0E14 \xB7 \u0E41\u0E04\u0E1B\u0E2B\u0E19\u0E49\u0E32\u0E08\u0E2D\u0E2A\u0E48\u0E07\u0E43\u0E2B\u0E49\u0E1C\u0E39\u0E49\u0E14\u0E39\u0E41\u0E25\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22</small>
  <pre id="errv" style="font-size:13px;max-height:220px;overflow:auto;white-space:pre-wrap;margin:0">${JSON.parse(localStorage.getItem("pos_errlog") || "[]").slice().reverse().map((x, i) => i + 1 + ". " + x).join("\n") || "\u2705 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E1B\u0E31\u0E0D\u0E2B\u0E32"}</pre>
  <div class="btns" style="margin:0"><button id="errc">\u0E25\u0E49\u0E32\u0E07\u0E23\u0E32\u0E22\u0E07\u0E32\u0E19</button></div></div>
@@ -3510,6 +3545,8 @@ function rSet() {
     rSync();
   };
   ["#g1", "#g2", "#g3"].forEach((s) => $(s).onchange = sv);
+  pickVoice();
+  $("#vstat").innerHTML = thVoice ? "\u2705 \u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E19\u0E35\u0E49\u0E21\u0E35\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22: " + thVoice.name : "\u26A0\uFE0F \u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E19\u0E35\u0E49\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22 \u0E23\u0E30\u0E1A\u0E1A\u0E08\u0E30\u0E41\u0E2A\u0E14\u0E07\u0E22\u0E2D\u0E14/\u0E40\u0E07\u0E34\u0E19\u0E17\u0E2D\u0E19\u0E40\u0E1B\u0E47\u0E19\u0E15\u0E31\u0E27\u0E2B\u0E19\u0E31\u0E07\u0E2A\u0E37\u0E2D\u0E43\u0E2B\u0E0D\u0E48\u0E41\u0E17\u0E19<br>\u0E27\u0E34\u0E18\u0E35\u0E40\u0E1E\u0E34\u0E48\u0E21: Play Store \u2192 \u0E15\u0E34\u0E14\u0E15\u0E31\u0E49\u0E07 <b>Speech Services by Google</b> \u2192 \u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07 \u2192 \u0E20\u0E32\u0E29\u0E32\u0E41\u0E25\u0E30\u0E01\u0E32\u0E23\u0E1B\u0E49\u0E2D\u0E19\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25 \u2192 \u0E40\u0E2D\u0E32\u0E15\u0E4C\u0E1E\u0E38\u0E15\u0E01\u0E32\u0E23\u0E2D\u0E48\u0E32\u0E19\u0E2D\u0E2D\u0E01\u0E40\u0E2A\u0E35\u0E22\u0E07 \u2192 \u0E40\u0E25\u0E37\u0E2D\u0E01 Google \u2192 \u0E20\u0E32\u0E29\u0E32: \u0E44\u0E17\u0E22 \u2192 \u0E14\u0E32\u0E27\u0E19\u0E4C\u0E42\u0E2B\u0E25\u0E14\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E40\u0E2A\u0E35\u0E22\u0E07";
   $("#errc").onclick = () => {
     localStorage.removeItem("pos_errlog");
     $("#errv").textContent = "\u2705 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E1B\u0E31\u0E0D\u0E2B\u0E32";
