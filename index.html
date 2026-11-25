@@ -2163,7 +2163,8 @@ const Core = /* @__PURE__ */ (() => {
     if (kitchen) {
       out.push("*** \u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E04\u0E23\u0E31\u0E27 ***", `\u0E1A\u0E34\u0E25 ${bill.code || "#" + bill.queue}${bill.name ? " " + bill.name : ""}`, CHANNELS[bill.channel].label, bill.time, line);
       bill.lines.forEach((l) => {
-        out.push(`${l.qty} x ${l.name}`);
+        out.push(`${l.qty} x ${l.box ? l.name.replace(/ \(ข้าวเพิ่ม.*\)$/, "") : l.name}`);
+        if (l.box && l.extra) out.push(`   + เพิ่มข้าวห่อนี้ ฿${l.extra} (${riceGrams(l.extra)} ก.)`);
         l.opts.forEach((o) => out.push(`   + ${o.name}`));
         if (l.note) out.push(`   * ${l.note}`);
       });
@@ -2182,7 +2183,7 @@ const Core = /* @__PURE__ */ (() => {
     if (bill.pay === "cash") {
       out.push(pad("\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19", bill.received.toFixed(2), w), pad("\u0E17\u0E2D\u0E19", bill.change.toFixed(2), w));
     } else out.push(pad("\u0E0A\u0E33\u0E23\u0E30\u0E42\u0E14\u0E22", "\u0E42\u0E2D\u0E19/QR", w));
-    out.push(line, "\u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E17\u0E35\u0E48\u0E2D\u0E38\u0E14\u0E2B\u0E19\u0E38\u0E19\u0E04\u0E23\u0E31\u0E1A", "", "");
+    out.push(line, "\u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E17\u0E35\u0E48\u0E2D\u0E38\u0E14\u0E2B\u0E19\u0E38\u0E19\u0E04\u0E23\u0E31\u0E1A", line, "รับทำข้าวเหนียวหมูทอด", "โทร. 095-174-4516", "", "");
     return out.join("\n");
   }
   return { CHANNELS, unitPrice, addLine, setQty, reprice, totals, change, validateCash, quickCash, nextQueue, nextNo, boxExtra, billCode, PORTION, usage, promptpay, crc16, riceGrams, meatGrams, makeBox, boxToggle, boxPrice, summary, closeShift, receiptText, lineKey };
@@ -2711,8 +2712,21 @@ function riceModal() {
     sub: "1 \u0E01\u0E34\u0E42\u0E25 = \u0E3F50 \xB7 \u0E3F1 \u2248 20 \u0E01\u0E23\u0E31\u0E21 \xB7 \u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E1A\u0E32\u0E17\u0E2B\u0E23\u0E37\u0E2D\u0E01\u0E23\u0E31\u0E21\u0E01\u0E47\u0E44\u0E14\u0E49",
     grams: Core.riceGrams,
     presets: [{ l: "1 \u0E2B\u0E48\u0E2D", v: 10 }, { l: "\u0E40\u0E1E\u0E34\u0E48\u0E21 \u0E3F5", v: 5 }, { l: "\u0E3F20", v: 20 }, { l: "\u0E04\u0E23\u0E36\u0E48\u0E07\u0E01\u0E34\u0E42\u0E25", v: 25 }, { l: "1 \u0E01\u0E34\u0E42\u0E25", v: 50 }, { l: "\u0E3F100", v: 100 }],
-    add: (v) => add({ id: "rice:" + v, name: v === 10 ? "\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 1 \u0E2B\u0E48\u0E2D" : v === 25 ? "\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 \u0E04\u0E23\u0E36\u0E48\u0E07\u0E01\u0E34\u0E42\u0E25" : v === 50 ? "\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 1 \u0E01\u0E34\u0E42\u0E25" : `\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 \u0E3F${v} (${Core.riceGrams(v)} \u0E01.)`, price: v }, [], 1, "")
+    add: (v) => {
+      const bx = cart.find((l) => l.key === activeKey && l.box) || (v !== 10 ? [...cart].reverse().find((l) => l.box) : null);
+      if (bx) {
+        cart = Core.boxExtra(cart, bx.key, v, channel).map((l) => l.key === bx.key ? __spreadProps(__spreadValues({}, l), { name: l.name.replace(/ \(ข้าวเพิ่ม.*\)$/, "") + (l.extra ? ` (ข้าวเพิ่ม ฿${l.extra})` : "") }) : l);
+        rCart();
+        rGrid();
+        try { rHero(); } catch (e) {}
+        return;
+      }
+      return addRiceLine(v);
+    }
   });
+  function addRiceLine(v) {
+    return add({ id: "rice:" + v, name: v === 10 ? "\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 1 \u0E2B\u0E48\u0E2D" : v === 25 ? "\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 \u0E04\u0E23\u0E36\u0E48\u0E07\u0E01\u0E34\u0E42\u0E25" : v === 50 ? "\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 1 \u0E01\u0E34\u0E42\u0E25" : `\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 \u0E3F${v} (${Core.riceGrams(v)} \u0E01.)`, price: v }, [], 1, "")
+  }
 }
 function weightModal(m) {
   amtPicker({
@@ -2856,7 +2870,7 @@ $("#bPay").onclick = () => {
   save();
   const T = Core.totals(cart, channel, discount);
   SND.open();
-  sayMoney("\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21 " + baht(T.total));
+  sayMoney(baht(T.total) + " หมูทอดป้าน้อย ขอบคุณค่ะ");
   let pay = Core.CHANNELS[channel].app ? "app" : "cash";
   let rec = null;
   const draw = () => {
@@ -3016,7 +3030,8 @@ function drawSlip(b, kitchen) {
       if (l.box) {
         T(`${l.qty} \xD7 \u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 ${l.items.length ? "+ " + l.items.length + " \u0E2D\u0E22\u0E48\u0E32\u0E07" : "\u0E40\u0E1B\u0E25\u0E48\u0E32"}`, 30 * big, { w: 700 });
         const u = Core.usage(__spreadProps(__spreadValues({}, l), { qty: 1 }));
-        T(`   \u0E02\u0E49\u0E32\u0E27 ${u.rice} \u0E01.`, 26 * big, { w: 500 });
+        T(`   \u0E02\u0E49\u0E32\u0E27 ${u.rice - Core.riceGrams(l.extra || 0)} \u0E01.`, 26 * big, { w: 500 });
+        if (l.extra) T(`   + \u0E40\u0E1E\u0E34\u0E48\u0E21\u0E02\u0E49\u0E32\u0E27\u0E2B\u0E48\u0E2D\u0E19\u0E35\u0E49 \u0E3F${l.extra} (${Core.riceGrams(l.extra)} \u0E01.)`, 26 * big, { w: 700 });
         l.items.forEach((i) => T(`   ${NAMES()[i]} ${Core.PORTION[i]} \u0E01.`, 26 * big, { w: 500 }));
       } else T(`${l.qty} \xD7 ${l.name}`, 30 * big, { w: 600 });
       if (l.note) T("* " + l.note, 24 * big);
@@ -3046,6 +3061,9 @@ function drawSlip(b, kitchen) {
     HR(1);
     y += 8;
     T("\u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E17\u0E35\u0E48\u0E2D\u0E38\u0E14\u0E2B\u0E19\u0E38\u0E19\u0E04\u0E23\u0E31\u0E1A \u{1F64F}", 24 * big, { c: 1, w: 500 });
+    HR();
+    T("รับทำข้าวเหนียวหมูทอด", 32 * big, { c: 1, w: 700 });
+    T("โทร. 095-174-4516", 40 * big, { c: 1, w: 700 });
     y += 40;
   }
   const o = document.createElement("canvas");
@@ -3229,12 +3247,34 @@ function thText(t) {
   });
 }
 function toEn(t) {
-  const m = [["\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E1E\u0E2D\u0E14\u0E35", "exact amount"], ["\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E42\u0E2D\u0E19", "transfer received"], ["\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19", "received"], ["\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21", "total"], ["\u0E17\u0E2D\u0E19", "change"], ["\u0E1A\u0E32\u0E17", "baht"], ["\u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30", "thank you"], ["\u0E1B\u0E34\u0E14\u0E1A\u0E34\u0E25\u0E40\u0E23\u0E35\u0E22\u0E1A\u0E23\u0E49\u0E2D\u0E22", "thank you"]];
+  const m = [["\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E1E\u0E2D\u0E14\u0E35", "rub ngern por dee"], ["\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E42\u0E2D\u0E19", "rub ngern on"], ["\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19", "rub ngern"], ["หมูทอดป้าน้อย", "Moo Tod Pa noi"], ["\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21", ""], ["\u0E17\u0E2D\u0E19", "torn"], ["\u0E1A\u0E32\u0E17", "baht"], ["\u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30", "Kob krun ka"], ["\u0E1B\u0E34\u0E14\u0E1A\u0E34\u0E25\u0E40\u0E23\u0E35\u0E22\u0E1A\u0E23\u0E49\u0E2D\u0E22", "Kob krun ka"]];
   t = String(t);
   m.forEach(([a, b]) => {
     t = t.split(a).join(" " + b + " ");
   });
+  t = t.replace(/\d[\d,]*(\.\d+)?/g, (x) => " " + krNum(+x.replace(/,/g, "")) + " ");
   return t.replace(/[\u0E00-\u0E7F]+/g, " ").replace(/\s+/g, " ").trim();
+}
+function krNum(n) {
+  n = Math.floor(n);
+  if (!n) return "soon";
+  const d = ["", "neung", "song", "sam", "see", "ha", "hok", "jet", "paet", "gao"], u = ["", "sip", "roi", "pan", "muen", "saen"];
+  let r = [];
+  if (n >= 1e6) {
+    r.push(krNum(n / 1e6), "lan");
+    n %= 1e6;
+    if (!n) return r.join(" ");
+  }
+  const s = String(n), L = s.length;
+  for (let i = 0; i < L; i++) {
+    const x = +s[i], p = L - i - 1;
+    if (!x) continue;
+    if (p === 1 && x === 1) r.push("sip");
+    else if (p === 1 && x === 2) r.push("yee sip");
+    else if (p === 0 && x === 1 && L > 1) r.push("et");
+    else r.push((d[x] + " " + u[p]).trim());
+  }
+  return r.join(" ");
 }
 let sayT = null;
 function say(t, fast) {
@@ -3624,7 +3664,7 @@ function rSet() {
   };
   $("#s8").onclick = () => {
     SND.cash();
-    setTimeout(() => say("\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21 45 \u0E1A\u0E32\u0E17 \u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 100 \u0E1A\u0E32\u0E17 \u0E17\u0E2D\u0E19 55 \u0E1A\u0E32\u0E17"), 400);
+    setTimeout(() => say("45 บาท หมูทอดป้าน้อย ขอบคุณค่ะ"), 400);
     if (cfg.voice !== false && !thVoice) setTimeout(() => toast("\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22 \xB7 \u0E15\u0E34\u0E14\u0E15\u0E31\u0E49\u0E07 Google Text-to-Speech"), 900);
   };
   $("#gt").onclick = async () => {
