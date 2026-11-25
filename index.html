@@ -259,9 +259,14 @@ html,body{overscroll-behavior:none;overscroll-behavior-y:none}.left,.right,.line
 @media(max-height:560px){.paybox h3 span:last-child{font-size:24px!important}.paybox .pad button{height:40px;font-size:20px}.paybox .cash button{padding:7px 2px;font-size:15px}.paybox .btns{margin-top:6px}.paybox .btns button{padding:9px}}
 #bignote{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%) scale(.9);background:#1d4ed8;color:#fff;font-size:30px;font-weight:700;padding:18px 26px;border-radius:20px;box-shadow:0 20px 50px #0005;z-index:30;opacity:0;pointer-events:none;transition:.15s;text-align:center;max-width:90vw}#bignote.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
-.item.nb .row2{display:none!important}
+.item.nb .addb{display:none!important}
+.item.nb .row2{justify-content:center;margin-top:0}
+.item.nb .row2 .p{font-size:18px;font-weight:600}
 .item.nb .n{font-size:22px!important;font-weight:700!important;text-align:center;white-space:normal!important}
 .item.nb .ph{aspect-ratio:1/1!important;margin-bottom:6px!important}
+
+.ln:has(.lrm){grid-template-columns:auto 1fr auto auto}
+.lrm{width:44px;height:44px;border-radius:10px;background:#fde2e2;color:var(--bad);font-size:20px;display:grid;place-items:center;padding:0}
 </style></head><body>
 <nav class="top"><div class="logo">🐷</div>
 <button class="on" data-p="sell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>ขาย</button>
@@ -2528,7 +2533,7 @@ function rGrid() {
   const qq = (((_b = $("#q")) == null ? void 0 : _b.value) || "").trim();
   $("#grid").innerHTML = menu.filter((m) => (cat === "\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14" || m.cat === cat) && (!qq || m.name.includes(qq))).map((m) => {
     var _a2;
-    return `<button class="item ${m.top && sellMode !== "split" ? "nb" : ""} ${m.soldOut ? "out" : ""} ${inCart[m.id] ? "sel" : ""}" data-id="${m.id}">${m.img && IMG[m.img] ? `<img class="ph" src="${IMG[m.img]}">` : `<span class="e">${m.e || "\u{1F37D}\uFE0F"}</span>`}${!m.top && ((_a2 = m.opts) == null ? void 0 : _a2.length) ? '<span class="more" data-more>\u22EF</span>' : ""}<span class="n">${m.set ? `\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 + <b style="color:var(--acc)">${m.set} \u0E2D\u0E22\u0E48\u0E32\u0E07</b>` : m.all ? `\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 + <b style="color:var(--acc)">\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2D\u0E22\u0E48\u0E32\u0E07</b>` : m.name}</span><span class="row2">${m.top ? sellMode === "split" ? '<span class="p sp">\u0E3F40<small>/\u0E02\u0E35\u0E14</small></span><span class="addb sp">\u2696 \u0E0A\u0E31\u0E48\u0E07\u0E02\u0E32\u0E22</span>' : '' : `<span class="p">\u0E3F${fmt(Core.unitPrice(m, [], channel))}</span><span class="addb">+ \u0E40\u0E1E\u0E34\u0E48\u0E21</span>`}</span>${inCart[m.id] ? `<span class="badge">${inCart[m.id]}</span>` : ""}</button>`;
+    return `<button class="item ${!(m.top && sellMode === "split") ? "nb" : ""} ${m.soldOut ? "out" : ""} ${inCart[m.id] ? "sel" : ""}" data-id="${m.id}">${m.img && IMG[m.img] ? `<img class="ph" src="${IMG[m.img]}">` : `<span class="e">${m.e || "\u{1F37D}\uFE0F"}</span>`}${!m.top && ((_a2 = m.opts) == null ? void 0 : _a2.length) ? '<span class="more" data-more>\u22EF</span>' : ""}<span class="n">${m.set ? `\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 + <b style="color:var(--acc)">${m.set} \u0E2D\u0E22\u0E48\u0E32\u0E07</b>` : m.all ? `\u0E02\u0E49\u0E32\u0E27\u0E40\u0E2B\u0E19\u0E35\u0E22\u0E27 + <b style="color:var(--acc)">\u0E23\u0E27\u0E21\u0E17\u0E38\u0E01\u0E2D\u0E22\u0E48\u0E32\u0E07</b>` : m.name}</span><span class="row2">${m.top ? sellMode === "split" ? '<span class="p sp">\u0E3F40<small>/\u0E02\u0E35\u0E14</small></span><span class="addb sp">\u2696 \u0E0A\u0E31\u0E48\u0E07\u0E02\u0E32\u0E22</span>' : '' : `<span class="p">\u0E3F${fmt(Core.unitPrice(m, [], channel))}</span><span class="addb">+ \u0E40\u0E1E\u0E34\u0E48\u0E21</span>`}</span>${inCart[m.id] ? `<span class="badge">${inCart[m.id]}</span>` : ""}</button>`;
   }).join("");
   badges();
   setTimeout(fitGrid, 0);
@@ -2835,7 +2840,7 @@ function rCart() {
  <div class="bf"><span>\u0E08\u0E33\u0E19\u0E27\u0E19\u0E2B\u0E48\u0E2D</span><div class="qty"><button data-k="${l.key}" data-d="-1">\u2212</button><b>${l.qty}</b><button data-k="${l.key}" data-d="1">+</button></div></div></div>`;
     }
     const mi = menu.find((x) => x.id === l.id) || menu.find((x) => x.id === (l.id.startsWith("w:") ? l.id.split(":")[1] : l.id.split(":")[0])) || {};
-    return `<div class="ln">${mi.img && IMG[mi.img] ? `<img class="th" src="${IMG[mi.img]}">` : `<span class="th">${mi.e || "\u{1F37D}\uFE0F"}</span>`}<div><b>${l.id.startsWith("w:") ? '<span class="tg">\u0E02\u0E32\u0E22\u0E41\u0E22\u0E01</span> ' : ""}${l.name}</b>${l.opts.length ? `<small>+ ${l.opts.map((o) => o.name).join(", ")}</small>` : ""}${l.note ? `<small>* ${l.note}</small>` : ""}<small class="pr">\u0E3F${fmt(l.unit * l.qty)}</small></div><div class="qty"><button data-k="${l.key}" data-d="-1">\u2212</button><b>${l.qty}</b><button data-k="${l.key}" data-d="1">+</button></div></div>`;
+    return `<div class="ln">${mi.img && IMG[mi.img] ? `<img class="th" src="${IMG[mi.img]}">` : `<span class="th">${mi.e || "\u{1F37D}\uFE0F"}</span>`}<div><b>${l.id.startsWith("w:") ? '<span class="tg">\u0E02\u0E32\u0E22\u0E41\u0E22\u0E01</span> ' : ""}${l.name}</b>${l.opts.length ? `<small>+ ${l.opts.map((o) => o.name).join(", ")}</small>` : ""}${l.note ? `<small>* ${l.note}</small>` : ""}<small class="pr">\u0E3F${fmt(l.unit * l.qty)}</small></div><div class="qty"><button data-k="${l.key}" data-d="-1">\u2212</button><b>${l.qty}</b><button data-k="${l.key}" data-d="1">+</button></div><button class="lrm" data-del="${l.key}">\u2715</button></div>`;
   }).join("") : '<div class="empty"><div class="ic">\u{1F9FA}</div>\u0E15\u0E30\u0E01\u0E23\u0E49\u0E32\u0E27\u0E48\u0E32\u0E07<br><small>\u0E41\u0E15\u0E30\u0E40\u0E21\u0E19\u0E39\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E40\u0E1E\u0E34\u0E48\u0E21 \xB7 \u0E01\u0E14 \u22EF \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E15\u0E31\u0E27\u0E40\u0E25\u0E37\u0E2D\u0E01</small></div>';
   $("#lines").querySelectorAll("[data-box]").forEach((el) => el.onclick = (e) => {
     if (e.target.closest("button")) return;
@@ -2862,6 +2867,12 @@ function rCart() {
   $("#lines").querySelectorAll(".qty").forEach((q) => {
     const bt = q.querySelector("button[data-k]"), bv = q.querySelector("b");
     if (bt && bv) bv.onclick = () => qtyPad(bt.dataset.k);
+  });
+  $("#lines").querySelectorAll("[data-del]").forEach((b) => b.onclick = () => {
+    cart = Core.setQty(cart, b.dataset.del, 0);
+    try { SND.remove(); } catch (e) {}
+    rCart();
+    rGrid();
   });
   $("#lines").querySelectorAll(".qty button").forEach((b) => b.onclick = () => {
     const l = cart.find((x) => x.key === b.dataset.k);
