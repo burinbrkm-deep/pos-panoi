@@ -2315,7 +2315,7 @@ function rTickets() {
     rAll();
     toast("\u0E40\u0E1B\u0E34\u0E14\u0E1A\u0E34\u0E25 " + Core.billCode(today(), tickets[cur].no));
   };
-  $("#mstrip").innerHTML = `<select id="mch" style="background:${Core.CHANNELS[channel].color};color:#fff;border-color:${Core.CHANNELS[channel].color};font-weight:600">${Object.entries(Core.CHANNELS).filter(([k, c]) => !c.hidden).map(([k, c]) => `<option value="${k}" ${k === channel ? "selected" : ""}>${c.short === "\u{1F3EA}" ? "\u{1F3EA}" : "\u{1F6F5}"} ${c.label}</option>`).join("")}</select><span class="sep"></span>` + tickets.map((t, i) => {
+  $("#mstrip").innerHTML = `<select id="mch" style="background:${Core.CHANNELS[channel].color};color:#fff;border-color:${Core.CHANNELS[channel].color};font-weight:600">${Object.entries(Core.CHANNELS).filter(([k, c]) => !c.hidden).map(([k, c]) => `<option value="${k}" ${k === channel ? "selected" : ""}>${c.short === "\u{1F3EA}" ? "\u{1F3EA}" : "\u{1F6F5}"} ${({shopee:"ช้อปปี้ฟู้ด",grab:"แกร็บฟู้ด",lineman:"ไลน์แมน"})[k] || c.label}</option>`).join("")}</select><span class="sep"></span>` + tickets.map((t, i) => {
     const T = Core.totals(t.cart, t.channel, t.discount);
     return `<button class="mt ${i === cur ? "on" : ""}" data-i="${i}"><span class="mn" style="background:${COL[t.no % COL.length]}">${t.no}</span>${t.channel && t.channel !== "front" && Core.CHANNELS[t.channel] ? chBadge(t.channel, 22) : ""}${T.count ? "\u0E3F" + fmt(T.total) : "\u0E27\u0E48\u0E32\u0E07"}</button>`;
   }).join("") + `<button id="mAdd" style="color:var(--acc)">\uFF0B \u0E1A\u0E34\u0E25\u0E43\u0E2B\u0E21\u0E48</button>`;
