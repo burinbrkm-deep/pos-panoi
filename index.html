@@ -3130,6 +3130,60 @@ function drawSlip(b, kitchen) {
   o.getContext("2d").drawImage(cv, 0, 0);
   return o;
 }
+function escChunks(cv, rows) {
+  rows = rows || 96;
+  const W = cv.width, H = cv.height, d = cv.getContext("2d").getImageData(0, 0, W, H).data, bw2 = W >> 3, res = [];
+  const b64 = (u) => {
+    let s = "";
+    for (let i = 0; i < u.length; i += 8192) s += String.fromCharCode.apply(null, u.subarray(i, i + 8192));
+    return btoa(s);
+  };
+  res.push(b64(new Uint8Array([27, 64])));
+  for (let y0 = 0; y0 < H; y0 += rows) {
+    const h = Math.min(rows, H - y0), u = new Uint8Array(8 + bw2 * h);
+    u.set([29, 118, 48, 0, bw2 & 255, bw2 >> 8, h & 255, h >> 8]);
+    let o = 8;
+    for (let y = y0; y < y0 + h; y++) for (let b = 0; b < bw2; b++) {
+      let v = 0;
+      for (let k = 0; k < 8; k++) {
+        const i = (y * W + b * 8 + k) * 4;
+        if (d[i] + d[i + 1] + d[i + 2] < 380) v |= 128 >> k;
+      }
+      u[o++] = v;
+    }
+    res.push(b64(u));
+  }
+  res.push(b64(new Uint8Array([10, 10, 10, 10, 29, 86, 66, 0])));
+  return res;
+}
+function nativePrint(slips) {
+  const q = [];
+  slips.forEach((c) => {
+    try {
+      q.push(...escChunks(c));
+    } catch (e) {
+      logErr("print", e);
+    }
+  });
+  let i = 0;
+  const step = () => {
+    if (i >= q.length) return;
+    let r;
+    try {
+      r = PNApp.print(q[i++]);
+    } catch (e) {
+      logErr("print", e);
+      toast("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49");
+      return;
+    }
+    if (r && r !== "ok") {
+      toast("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49: " + r);
+      return;
+    }
+    setTimeout(step, 40);
+  };
+  setTimeout(step, 0);
+}
 function escpos(cv) {
   const W = cv.width, H = cv.height, d = cv.getContext("2d").getImageData(0, 0, W, H).data, bw2 = W / 8, out = [27, 64, 29, 118, 48, 0, bw2 & 255, bw2 >> 8, H & 255, H >> 8];
   for (let yy = 0; yy < H; yy++) for (let b = 0; b < bw2; b++) {
@@ -3480,14 +3534,7 @@ async function printBill(b, withKitchen) {
   };
   const send = () => slips.forEach((c, i) => i ? setTimeout(() => go(c), i * 2e3) : go(c));
   if (window.PNApp) {
-    slips.forEach((c, i) => setTimeout(() => {
-      try {
-        const r = PNApp.print(escpos(c));
-        if (r && r !== "ok") toast("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49: " + r);
-      } catch (e) {
-        logErr("print", e);
-      }
-    }, i * 300));
+    nativePrint(slips);
     return;
   }
   if (/Android/i.test(navigator.userAgent) && cfg.rawbt) return send();
