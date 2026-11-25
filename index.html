@@ -3534,7 +3534,11 @@ async function printBill(b, withKitchen) {
   };
   const send = () => slips.forEach((c, i) => i ? setTimeout(() => go(c), i * 2e3) : go(c));
   if (window.PNApp) {
-    nativePrint(slips);
+    if (PNApp.printImage) {
+      setTimeout(() => {
+        slips.forEach((c) => { try { const r = PNApp.printImage(c.toDataURL("image/png")); if (r && r !== "ok") toast("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49: " + r); } catch (e) { logErr("print", e); } });
+      }, 50);
+    } else nativePrint(slips);
     return;
   }
   if (/Android/i.test(navigator.userAgent) && cfg.rawbt) return send();

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Base64;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
@@ -58,6 +60,24 @@ public class MainActivity extends Activity {
       pq.execute(() -> {
         try { SunmiPrinterService p = printer; if (p != null) p.sendRAWData(data, null); }
         catch (Exception e) { }
+      });
+      return "ok";
+    }
+    @JavascriptInterface public String ver() { return "1.2"; }
+    @JavascriptInterface public String printImage(String dataUrl) {
+      if (printer == null) { bindPrinter(); return "ไม่พบเครื่องพิมพ์ในตัว ลองใหม่อีกครั้ง"; }
+      final String b = dataUrl.substring(dataUrl.indexOf(',') + 1);
+      pq.execute(() -> {
+        try {
+          byte[] d = Base64.decode(b, Base64.DEFAULT);
+          Bitmap bmp = BitmapFactory.decodeByteArray(d, 0, d.length);
+          SunmiPrinterService p = printer;
+          if (p == null || bmp == null) return;
+          p.printerInit(null);
+          p.printBitmap(bmp, null);
+          p.lineWrap(4, null);
+          try { p.cutPaper(null); } catch (Throwable t) { }
+        } catch (Throwable e) { }
       });
       return "ok";
     }
