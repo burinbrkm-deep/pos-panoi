@@ -88,7 +88,10 @@ main{min-width:0;height:100vh;overflow-x:hidden}.left{min-width:0;overflow-x:hid
 .ln b{font-weight:500}.ln small{color:var(--mute);display:block;font-size:12px}.ln .pr{font-weight:600;color:var(--ink)}
 .qty{display:flex;align-items:center;gap:4px;background:var(--bg);border-radius:12px;padding:3px}
 .qty button{width:40px;height:40px;background:#fff;font-size:20px;border-radius:10px;box-shadow:var(--sh)}
-.qty b{min-width:26px;text-align:center}
+.qty b{min-width:26px;text-align:center}#lines .qty b{min-width:44px;padding:6px 4px;border-radius:8px;background:#fff;text-decoration:underline dotted;cursor:pointer}
+.qpd{font-size:44px;font-weight:700;text-align:center;padding:10px;background:var(--bg);border-radius:14px;margin:8px 0}
+.qpk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.qpk button{height:58px;font-size:26px;font-weight:600;background:var(--bg)}
+.qpq{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}.qpq button{padding:10px 0;background:var(--acc2);color:var(--acc);font-weight:600}
 .empty{color:var(--mute);text-align:center;padding:50px 20px}.empty .ic{font-size:42px;opacity:.5}
 .sum{padding:12px 16px;border-top:1px solid var(--line);background:#fbfcfb}
 .row{display:flex;justify-content:space-between;margin:4px 0;color:var(--mute);font-size:14px}.row span:last-child{color:var(--ink)}
@@ -2427,6 +2430,33 @@ function modal(html, cls) {
   mb.innerHTML = html;
   $("#m").classList.add("on");
 }
+function qtyPad(key) {
+  const l = cart.find((x) => x.key === key);
+  if (!l) return;
+  let v = "";
+  modal(`<h3>จำนวนห่อ / ชิ้น</h3><div style="text-align:center;color:var(--mute)">ตอนนี้ ${l.qty}</div><div class="qpd" id="qpd">${l.qty}</div>
+ <div class="qpq">${[10, 20, 50, 100].map((n) => `<button data-n="${n}">${n}</button>`).join("")}</div>
+ <div class="qpk">${[1, 2, 3, 4, 5, 6, 7, 8, 9, "C", 0, "\u232B"].map((k) => `<button data-p="${k}">${k}</button>`).join("")}</div>
+ <div class="btns"><button onclick="closeM()">ยกเลิก</button><button class="p" id="qok">ตกลง</button></div>`);
+  const show = () => $("#qpd").textContent = v || "0";
+  $("#mb").querySelectorAll("[data-n]").forEach((b) => b.onclick = () => { v = b.dataset.n; show(); });
+  $("#mb").querySelectorAll("[data-p]").forEach((b) => b.onclick = () => {
+    const k = b.dataset.p;
+    if (k === "C") v = "";
+    else if (k === "\u232B") v = v.slice(0, -1);
+    else if (v.length < 4) v = (v === "0" ? "" : v) + k;
+    show();
+  });
+  $("#qok").onclick = () => {
+    const n = parseInt(v, 10);
+    closeM();
+    if (!n) return;
+    cart = Core.setQty(cart, key, n);
+    rCart();
+    rGrid();
+    try { rHero(); } catch (e) {}
+  };
+}
 function closeM() {
   $("#m").classList.remove("on");
 }
@@ -2825,6 +2855,10 @@ function rCart() {
     rGrid();
     rHero();
   });
+  $("#lines").querySelectorAll(".qty").forEach((q) => {
+    const bt = q.querySelector("button[data-k]"), bv = q.querySelector("b");
+    if (bt && bv) bv.onclick = () => qtyPad(bt.dataset.k);
+  });
   $("#lines").querySelectorAll(".qty button").forEach((b) => b.onclick = () => {
     const l = cart.find((x) => x.key === b.dataset.k);
     cart = Core.setQty(cart, l.key, l.qty + +b.dataset.d);
@@ -3057,6 +3091,10 @@ function drawSlip(b, kitchen) {
         T(`   \u0E02\u0E49\u0E32\u0E27 ${u.rice - Core.riceGrams(l.extra || 0)} \u0E01.`, 26 * big, { w: 500 });
         if (l.extra) T(`   + \u0E40\u0E1E\u0E34\u0E48\u0E21\u0E02\u0E49\u0E32\u0E27\u0E2B\u0E48\u0E2D\u0E19\u0E35\u0E49 \u0E3F${l.extra} (${Core.riceGrams(l.extra)} \u0E01.)`, 26 * big, { w: 700 });
         l.items.forEach((i) => T(`   ${NAMES()[i]} ${Core.PORTION[i]} \u0E01.`, 26 * big, { w: 500 }));
+        if (l.qty > 1) {
+          const ua = Core.usage(l), g = (n) => n >= 1000 ? (n / 1000).toLocaleString(undefined, { maximumFractionDigits: 2 }) + " กก." : n + " ก.";
+          T(`   รวม ${l.qty} ห่อ: ข้าว ${g(ua.rice)}` + l.items.map((i) => ` · ${NAMES()[i]} ${g(ua[i])}`).join(""), 26 * big, { w: 700 });
+        }
       } else T(`${l.qty} \xD7 ${l.name}`, 30 * big, { w: 600 });
       if (l.note) T("* " + l.note, 24 * big);
       y += 8;
