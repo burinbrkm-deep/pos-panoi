@@ -2183,7 +2183,7 @@ const Core = /* @__PURE__ */ (() => {
     if (bill.pay === "cash") {
       out.push(pad("\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19", bill.received.toFixed(2), w), pad("\u0E17\u0E2D\u0E19", bill.change.toFixed(2), w));
     } else out.push(pad("\u0E0A\u0E33\u0E23\u0E30\u0E42\u0E14\u0E22", "\u0E42\u0E2D\u0E19/QR", w));
-    out.push(line, "\u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E17\u0E35\u0E48\u0E2D\u0E38\u0E14\u0E2B\u0E19\u0E38\u0E19\u0E04\u0E23\u0E31\u0E1A", line, "รับทำข้าวเหนียวหมูทอด", "โทร. 095-174-4516", "", "");
+    out.push(line, "ขอบคุณที่อุดหนุนค่ะ/ครับ :)", line, "รับทำข้าวเหนียวหมูทอด", "โทร. 095-174-4516", "", "");
     return out.join("\n");
   }
   return { CHANNELS, unitPrice, addLine, setQty, reprice, totals, change, validateCash, quickCash, nextQueue, nextNo, boxExtra, billCode, PORTION, usage, promptpay, crc16, riceGrams, meatGrams, makeBox, boxToggle, boxPrice, summary, closeShift, receiptText, lineKey };
@@ -2870,7 +2870,7 @@ $("#bPay").onclick = () => {
   save();
   const T = Core.totals(cart, channel, discount);
   SND.open();
-  sayMoney(baht(T.total) + " หมูทอดป้าน้อย ขอบคุณค่ะ");
+  sayMoney(baht(T.total));
   let pay = Core.CHANNELS[channel].app ? "app" : "cash";
   let rec = null;
   const draw = () => {
@@ -2954,7 +2954,8 @@ $("#bPay").onclick = () => {
       bills.push(b);
       store.set("bills", bills);
       SND.cash();
-      sayMoney(b.pay === "cash" ? b.change ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 " + baht(b.received) + " \u0E17\u0E2D\u0E19 " + baht(b.change) + " \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E1E\u0E2D\u0E14\u0E35 \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : b.pay === "qr" ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E42\u0E2D\u0E19 " + baht(b.totals.total) + " \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : "\u0E1B\u0E34\u0E14\u0E1A\u0E34\u0E25\u0E40\u0E23\u0E35\u0E22\u0E1A\u0E23\u0E49\u0E2D\u0E22");
+      sayMoney(b.pay === "cash" ? b.change ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 " + baht(b.received) + " \u0E17\u0E2D\u0E19 " + baht(b.change) + "" : "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E1E\u0E2D\u0E14\u0E35" : b.pay === "qr" ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E42\u0E2D\u0E19 " + baht(b.totals.total) + "" : "");
+      setTimeout(() => say("หมูทอดป้าน้อย ขอบคุณค่ะ", false, 0.8), 4500);
       setTimeout(sync, 300);
       closeM();
       closeTicket();
@@ -3060,7 +3061,7 @@ function drawSlip(b, kitchen) {
     } else LR("\u0E0A\u0E33\u0E23\u0E30\u0E42\u0E14\u0E22", b.pay === "app" ? chL : "\u0E42\u0E2D\u0E19 / QR", 24 * big);
     HR(1);
     y += 8;
-    T("\u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E17\u0E35\u0E48\u0E2D\u0E38\u0E14\u0E2B\u0E19\u0E38\u0E19\u0E04\u0E23\u0E31\u0E1A \u{1F64F}", 24 * big, { c: 1, w: 500 });
+    T("ขอบคุณที่อุดหนุนค่ะ/ครับ :)", 24 * big, { c: 1, w: 500 });
     HR();
     T("รับทำข้าวเหนียวหมูทอด", 32 * big, { c: 1, w: 700 });
     T("โทร. 095-174-4516", 40 * big, { c: 1, w: 700 });
@@ -3277,24 +3278,24 @@ function krNum(n) {
   return r.join(" ");
 }
 let sayT = null;
-function say(t, fast) {
+function say(t, fast, rate) {
   try {
     t = thVoice ? thText(t) : toEn(t);
     if (!t) return;
     if (cfg.voice === false) return;
     if (window.PNApp) {
-      PNApp.speak(t, fast ? 1.3 : 1.1);
+      PNApp.speak(t, rate || (fast ? 1.3 : 1.1));
       return;
     }
     if (!window.speechSynthesis) return;
-    clearTimeout(sayT);
+    if (!rate) clearTimeout(sayT);
     sayT = setTimeout(() => {
       try {
-        if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+        if (!rate && (speechSynthesis.speaking || speechSynthesis.pending)) speechSynthesis.cancel();
         const u = new SpeechSynthesisUtterance(t);
         u.lang = "th-TH";
         if (thVoice) u.voice = thVoice;
-        u.rate = fast ? 1.3 : 1.1;
+        u.rate = rate || (fast ? 1.3 : 1.1);
         speechSynthesis.speak(u);
       } catch (e) {
         logErr("say", e);
@@ -3664,7 +3665,8 @@ function rSet() {
   };
   $("#s8").onclick = () => {
     SND.cash();
-    setTimeout(() => say("45 บาท หมูทอดป้าน้อย ขอบคุณค่ะ"), 400);
+    setTimeout(() => say("รับเงิน 100 บาท ทอน 55 บาท"), 400);
+    setTimeout(() => say("หมูทอดป้าน้อย ขอบคุณค่ะ", false, 0.8), 3900);
     if (cfg.voice !== false && !thVoice) setTimeout(() => toast("\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22 \xB7 \u0E15\u0E34\u0E14\u0E15\u0E31\u0E49\u0E07 Google Text-to-Speech"), 900);
   };
   $("#gt").onclick = async () => {
