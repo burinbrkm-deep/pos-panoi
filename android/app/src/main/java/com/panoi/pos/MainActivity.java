@@ -13,10 +13,13 @@ import com.sunmi.peripheral.printer.InnerPrinterCallback;
 import com.sunmi.peripheral.printer.InnerPrinterManager;
 import com.sunmi.peripheral.printer.SunmiPrinterService;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends Activity {
   static final String URL = "https://burinbrkm-deep.github.io/pos-panoi/";
   WebView web; SunmiPrinterService printer; TextToSpeech tts; boolean thai = false;
+  final ExecutorService pq = Executors.newSingleThreadExecutor();
 
   @Override protected void onCreate(Bundle b) {
     super.onCreate(b);
@@ -28,12 +31,7 @@ public class MainActivity extends Activity {
     web.setWebViewClient(new WebViewClient());
     web.addJavascriptInterface(new Bridge(), "PNApp");
     setContentView(web);
-    try {
-      InnerPrinterManager.getInstance().bindService(this, new InnerPrinterCallback() {
-        @Override protected void onConnected(SunmiPrinterService service) { printer = service; }
-        @Override protected void onDisconnected() { printer = null; }
-      });
-    } catch (Exception e) { }
+    bindPrinter();
     tts = new TextToSpeech(this, st -> {
       if (st == TextToSpeech.SUCCESS) {
         int r = tts.setLanguage(new Locale("th", "TH"));
@@ -43,11 +41,25 @@ public class MainActivity extends Activity {
     if (b != null) web.restoreState(b); else web.loadUrl(URL);
   }
 
+  void bindPrinter() {
+      try {
+      InnerPrinterManager.getInstance().bindService(this, new InnerPrinterCallback() {
+        @Override protected void onConnected(SunmiPrinterService service) { printer = service; }
+        @Override protected void onDisconnected() { printer = null; }
+      });
+    } catch (Exception e) { }
+  }
+
   class Bridge {
     @JavascriptInterface public String print(String b64) {
-      if (printer == null) return "ไม่พบเครื่องพิมพ์ในตัว";
-      try { printer.sendRAWData(Base64.decode(b64, Base64.DEFAULT), null); return "ok"; }
-      catch (Exception e) { return e.getMessage(); }
+      if (printer == null) { bindPrinter(); return "ไม่พบเครื่องพิมพ์ในตัว ลองใหม่อีกครั้ง"; }
+      final byte[] data;
+      try { data = Base64.decode(b64, Base64.DEFAULT); } catch (Exception e) { return "ข้อมูลเสีย"; }
+      pq.execute(() -> {
+        try { SunmiPrinterService p = printer; if (p != null) p.sendRAWData(data, null); }
+        catch (Exception e) { }
+      });
+      return "ok";
     }
     @JavascriptInterface public void speak(String t, double rate) {
       if (tts == null) return;
