@@ -3054,8 +3054,8 @@ function drawSlip(b, kitchen) {
   };
   const big = W > 400 ? 1.25 : 1;
   const LABEL = (t) => {
-    F(34 * big, 700);
-    const h = 34 * big * 1.5;
+    F(40 * big, 700);
+    const h = 40 * big * 1.5;
     x.fillRect(P, y, W - 2 * P, h);
     x.fillStyle = "#fff";
     const tw = x.measureText(t).width;
@@ -3076,7 +3076,7 @@ function drawSlip(b, kitchen) {
     y += 22 * big * 1.4 + 16;
   };
   const code = b.code || "#" + b.queue;
-  const chL = Core.CHANNELS[b.channel].label;
+  const chL = "ช่องทาง: " + Core.CHANNELS[b.channel].label;
   if (kitchen) {
     LABEL("ใบหลังร้าน (ของร้าน)");
     T("\u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E04\u0E23\u0E31\u0E27", 22 * big, { c: 1, w: 600 });
@@ -3121,7 +3121,7 @@ function drawSlip(b, kitchen) {
     if (b.pay === "cash") {
       LR("\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19", fmt(b.received), 26 * big);
       LR("\u0E40\u0E07\u0E34\u0E19\u0E17\u0E2D\u0E19", fmt(b.change), 30 * big, 700);
-    } else LR("\u0E0A\u0E33\u0E23\u0E30\u0E42\u0E14\u0E22", b.pay === "app" ? chL : "\u0E42\u0E2D\u0E19 / QR", 24 * big);
+    } else LR("\u0E0A\u0E33\u0E23\u0E30\u0E42\u0E14\u0E22", b.pay === "app" ? Core.CHANNELS[b.channel].label : "\u0E42\u0E2D\u0E19 / QR", 24 * big);
     HR(1);
     y += 8;
     T("ขอบคุณที่อุดหนุนค่ะ/ครับ :)", 24 * big, { c: 1, w: 500 });
