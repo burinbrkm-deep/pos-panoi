@@ -15,3 +15,7 @@ jobs:
       - run: cp android/app/build/outputs/apk/debug/app-debug.apk PanoiPOS.apk
       - uses: softprops/action-gh-release@v2
         with: { tag_name: apk, name: 'POS ป้าน้อย (Android)', files: PanoiPOS.apk, make_latest: true }
+      - run: |
+          cp PanoiPOS.apk pos.apk
+          git config user.name bot && git config user.email bot@users.noreply.github.com
+          git add pos.apk && git commit -m "APK for direct download" && git pull --rebase && git push
