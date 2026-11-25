@@ -2908,9 +2908,10 @@ $("#bPay").onclick = () => {
   let pay = Core.CHANNELS[channel].app ? "app" : "cash";
   let rec = null;
   let oref = "";
+  const OMAX = { shopee: 3, grab: 4, lineman: 4 };
   const draw = () => {
     modal(`<h3 style="display:flex;justify-content:space-between;align-items:baseline"><span>\u0E1A\u0E34\u0E25 ${Core.billCode(today(), tickets[cur].no)}</span><span style="font-size:32px;font-weight:700">\u0E3F${fmt(T.total)}</span></h3><div class="tabs"><button data-p="cash" class="${pay === "cash" ? "on" : ""}">\u0E40\u0E07\u0E34\u0E19\u0E2A\u0E14</button><button data-p="qr" class="${pay === "qr" ? "on" : ""}">\u0E42\u0E2D\u0E19 / QR</button>${Core.CHANNELS[channel].app ? `<button data-p="app" class="${pay === "app" ? "on" : ""}">\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E2D\u0E1B</button>` : ""}</div>
- ${pay === "cash" ? `<div class="pcols"><div class="pl"><div class="cash">${Core.quickCash(T.total).map((v) => `<button data-v="${v}">\u0E3F${fmt(v)}</button>`).join("")}</div><input id="rv" class="np" inputmode="none" placeholder="\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E21\u0E32" value="${rec != null ? rec : ""}"><div class="chg" id="cv"></div></div><div class="pr">${pad()}</div></div>` : pay === "qr" ? `<div class="qr"><div id="qrbox" style="display:inline-block;background:#fff;padding:10px;border-radius:12px"></div><br><b style="font-size:30px;color:var(--ink)">\u0E3F${fmt(T.total)}</b><br><small>\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E40\u0E1E\u0E22\u0E4C ${cfg.pp || "0812345678 (\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07 \u2014 \u0E43\u0E2A\u0E48\u0E40\u0E1A\u0E2D\u0E23\u0E4C\u0E08\u0E23\u0E34\u0E07\u0E43\u0E19\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32)"}</small></div>` : `<label style="display:block;font-size:15px;font-weight:600;margin:2px 0 4px">เลขออเดอร์ ${Core.CHANNELS[channel].label}</label><input id="oref" class="np" data-raw="1" data-max="20" inputmode="none" placeholder="เช่น 123456789" value="${oref}" style="font-size:26px;text-align:center;width:100%">${pad()}`}
+ ${pay === "cash" ? `<div class="pcols"><div class="pl"><div class="cash">${Core.quickCash(T.total).map((v) => `<button data-v="${v}">\u0E3F${fmt(v)}</button>`).join("")}</div><input id="rv" class="np" inputmode="none" placeholder="\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E21\u0E32" value="${rec != null ? rec : ""}"><div class="chg" id="cv"></div></div><div class="pr">${pad()}</div></div>` : pay === "qr" ? `<div class="qr"><div id="qrbox" style="display:inline-block;background:#fff;padding:10px;border-radius:12px"></div><br><b style="font-size:30px;color:var(--ink)">\u0E3F${fmt(T.total)}</b><br><small>\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E40\u0E1E\u0E22\u0E4C ${cfg.pp || "0812345678 (\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07 \u2014 \u0E43\u0E2A\u0E48\u0E40\u0E1A\u0E2D\u0E23\u0E4C\u0E08\u0E23\u0E34\u0E07\u0E43\u0E19\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32)"}</small></div>` : `<label style="display:block;font-size:15px;font-weight:600;margin:2px 0 4px">เลขออเดอร์ ${({shopee:"ช้อปปี้ฟู้ด",grab:"แกร็บฟู้ด",lineman:"ไลน์แมน"})[channel]||Core.CHANNELS[channel].label} (ไม่เกิน ${OMAX[channel]||6} หลัก)</label><div style="display:flex;align-items:center;gap:6px">${channel==="grab"?'<b style="font-size:26px">GF-</b>':""}<input id="oref" class="np" data-raw="1" data-max="${OMAX[channel]||6}" inputmode="none" placeholder="${"1234".slice(0,OMAX[channel]||4)}" value="${oref}" style="font-size:26px;text-align:center;flex:1;min-width:0"></div>${pad()}`}
  <div class="btns"><button onclick="closeM()">\u0E01\u0E25\u0E31\u0E1A</button><button class="p" id="done" disabled>\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19 & \u0E1B\u0E23\u0E34\u0E49\u0E19</button></div>`, "paybox");
     $("#mb").querySelectorAll(".tabs button").forEach((b) => b.onclick = () => {
       pay = b.dataset.p;
@@ -2977,7 +2978,7 @@ $("#bPay").onclick = () => {
       const b = { id: Date.now(), queue: tk.no, code: Core.billCode(today(), tk.no), name: tk.name, date: today(), time: now(), channel, pay, lines: cart.map((_a) => {
         var _b = _a, { base } = _b, l = __objRest(_b, ["base"]);
         return l;
-      }), totals: T, ref: pay === "app" ? oref : "", received: r, change: pay === "cash" ? Core.validateCash(T.total, r).change : 0 };
+      }), totals: T, ref: pay === "app" && oref ? (channel === "grab" ? "GF-" + oref : oref) : "", received: r, change: pay === "cash" ? Core.validateCash(T.total, r).change : 0 };
       {
         const u = { _boxes: 0 };
         b.lines.forEach((l) => {
@@ -3072,9 +3073,12 @@ function drawSlip(b, kitchen) {
     x.fillText(lab, (W - tw) / 2, y);
     y += 22 * big * 1.4 + 16;
   };
+  const THNAME = { shopee: "ช้อปปี้ฟู้ด", grab: "แกร็บฟู้ด", lineman: "ไลน์แมน" };
+  const dlv = !!Core.CHANNELS[b.channel].app;
   const REF = () => {
     if (!b.ref) return;
-    T(Core.CHANNELS[b.channel].label, 44 * big, { c: 1, w: 800 });
+    T(THNAME[b.channel] || Core.CHANNELS[b.channel].label, 44 * big, { c: 1, w: 800 });
+    y += 6;
     T(String(b.ref), 52 * big, { c: 1, w: 800 });
     HR(1);
   };
@@ -3117,10 +3121,12 @@ function drawSlip(b, kitchen) {
     T(`${b.date} ${b.time}`, 20 * big, { c: 1 });
     HR();
     b.lines.forEach((l) => {
-      LR(`${l.qty}\xD7 ${l.name.replace(/ \(≈?[\d,]+ ก\.\)/g, "")}`, fmt(l.unit * l.qty), 26 * big, 500);
+      const nm = `${l.qty}\xD7 ${l.name.replace(/ \(≈?[\d,]+ ก\.\)/g, "")}`;
+      if (dlv) T(nm, 28 * big, { w: 600 }); else LR(nm, fmt(l.unit * l.qty), 26 * big, 500);
       y += 4;
     });
     HR();
+    if (!dlv) {
     if (b.totals.discount) LR("\u0E2A\u0E48\u0E27\u0E19\u0E25\u0E14", "-" + fmt(b.totals.discount), 24 * big);
     LR("\u0E23\u0E27\u0E21\u0E17\u0E31\u0E49\u0E07\u0E2A\u0E34\u0E49\u0E19", "\u0E3F" + fmt(b.totals.total), 40 * big, 700);
     if (b.pay === "cash") {
@@ -3128,6 +3134,7 @@ function drawSlip(b, kitchen) {
       LR("\u0E40\u0E07\u0E34\u0E19\u0E17\u0E2D\u0E19", fmt(b.change), 30 * big, 700);
     } else LR("\u0E0A\u0E33\u0E23\u0E30\u0E42\u0E14\u0E22", b.pay === "app" ? Core.CHANNELS[b.channel].label : "\u0E42\u0E2D\u0E19 / QR", 24 * big);
     HR(1);
+    }
     y += 8;
     T("ขอบคุณที่อุดหนุนค่ะ/ครับ :)", 24 * big, { c: 1, w: 500 });
     HR();
@@ -3532,7 +3539,7 @@ async function printBill(b, withKitchen) {
   } catch (e) {
   }
   const slips = [];
-  if (withKitchen && cfg.kitchen) slips.push(drawSlip(b, true));
+  if (withKitchen && cfg.kitchen && !Core.CHANNELS[b.channel].app) slips.push(drawSlip(b, true));
   slips.push(drawSlip(b, false));
   const go = (c) => {
     const b2 = escpos(c);
