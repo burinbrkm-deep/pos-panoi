@@ -3180,6 +3180,10 @@ const SND = { tap: () => tone(880, 0.06, 0, "sine", 0.12), remove: () => tone(33
 let thVoice = null;
 function pickVoice() {
   try {
+    if (window.PNApp) {
+      thVoice = PNApp.hasThai() ? { name: "Android TTS" } : null;
+      return;
+    }
     const v = speechSynthesis.getVoices();
     thVoice = v.find((x) => /^th/i.test(x.lang)) || null;
   } catch (e) {
@@ -3193,7 +3197,12 @@ try {
 let sayT = null;
 function say(t, fast) {
   try {
-    if (cfg.voice === false || !window.speechSynthesis) return;
+    if (cfg.voice === false) return;
+    if (window.PNApp) {
+      PNApp.speak(t, fast ? 1.3 : 1.1);
+      return;
+    }
+    if (!window.speechSynthesis) return;
     clearTimeout(sayT);
     sayT = setTimeout(() => {
       try {
@@ -3328,6 +3337,17 @@ async function printBill(b, withKitchen) {
     }
   };
   const send = () => slips.forEach((c, i) => i ? setTimeout(() => go(c), i * 2e3) : go(c));
+  if (window.PNApp) {
+    slips.forEach((c, i) => setTimeout(() => {
+      try {
+        const r = PNApp.print(escpos(c));
+        if (r && r !== "ok") toast("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49: " + r);
+      } catch (e) {
+        logErr("print", e);
+      }
+    }, i * 300));
+    return;
+  }
   if (/Android/i.test(navigator.userAgent) && cfg.rawbt) return send();
   modal(`<h3>\u0E43\u0E1A\u0E40\u0E2A\u0E23\u0E47\u0E08 ${b.code || ""}</h3><div class="rcp"><div>${slips.map((c) => `<img src="${c.toDataURL()}" style="margin-bottom:10px;display:block">`).join("")}</div></div><small style="color:var(--mute);display:block;margin-top:8px">\u0E1A\u0E19\u0E41\u0E17\u0E47\u0E1A\u0E40\u0E25\u0E47\u0E15 Android \u0E17\u0E35\u0E48\u0E25\u0E07\u0E41\u0E2D\u0E1B RawBT \u0E43\u0E2B\u0E49\u0E40\u0E1B\u0E34\u0E14 "\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E1C\u0E48\u0E32\u0E19 RawBT" \u0E43\u0E19\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32 \u0E43\u0E1A\u0E40\u0E2A\u0E23\u0E47\u0E08\u0E08\u0E30\u0E2A\u0E48\u0E07\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E1E\u0E40\u0E02\u0E49\u0E32\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E1E\u0E34\u0E21\u0E1E\u0E4C \u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22\u0E44\u0E21\u0E48\u0E40\u0E1E\u0E35\u0E49\u0E22\u0E19 \xB7 <b>PeriPage:</b> \u0E01\u0E14 "\u0E41\u0E0A\u0E23\u0E4C\u0E44\u0E1B\u0E41\u0E2D\u0E1B PeriPage" \u0E41\u0E25\u0E49\u0E27\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E41\u0E2D\u0E1B PeriPage \u0E43\u0E0A\u0E49\u0E44\u0E14\u0E49\u0E17\u0E31\u0E49\u0E07 iPhone \u0E41\u0E25\u0E30 Android</small><div class="btns" style="flex-wrap:wrap"><button onclick="closeM()">\u0E1B\u0E34\u0E14</button><button id="psh" style="background:#fff4e6;color:#c2410c;font-weight:600">\u{1F4E4} \u0E41\u0E0A\u0E23\u0E4C\u0E44\u0E1B\u0E41\u0E2D\u0E1B PeriPage</button><button class="p" id="pp">\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E1C\u0E48\u0E32\u0E19 RawBT</button></div>`);
   $("#pp").onclick = send;
