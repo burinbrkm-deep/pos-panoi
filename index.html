@@ -2161,17 +2161,17 @@ const Core = /* @__PURE__ */ (() => {
   function receiptText(bill, shop, width, kitchen) {
     const w = width || 32, line = "-".repeat(w), out = [];
     if (kitchen) {
-      out.push("*** \u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E04\u0E23\u0E31\u0E27 ***", `\u0E1A\u0E34\u0E25 ${bill.code || "#" + bill.queue}${bill.name ? " " + bill.name : ""}`, CHANNELS[bill.channel].label, bill.time, line);
+      out.push("=== ใบหลังร้าน (ของร้าน) ===", "*** \u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E04\u0E23\u0E31\u0E27 ***", `\u0E1A\u0E34\u0E25 ${bill.code || "#" + bill.queue}${bill.name ? " " + bill.name : ""}`, CHANNELS[bill.channel].label, bill.time, line);
       bill.lines.forEach((l) => {
         out.push(`${l.qty} x ${l.box ? l.name.replace(/ \(ข้าวเพิ่ม.*\)$/, "") : l.name}`);
         if (l.box && l.extra) out.push(`   + เพิ่มข้าวห่อนี้ ฿${l.extra} (${riceGrams(l.extra)} ก.)`);
         l.opts.forEach((o) => out.push(`   + ${o.name}`));
         if (l.note) out.push(`   * ${l.note}`);
       });
-      out.push(line, "", "");
+      out.push(line, "", "- - - - \u2702 ฉีกตรงนี้ \u2702 - - - -", "", "");
       return out.join("\n");
     }
-    out.push(shop.name, shop.sub || "", line, `\u0E1A\u0E34\u0E25 ${bill.code || "#" + bill.queue}  ${CHANNELS[bill.channel].label}`, `${bill.date} ${bill.time}`, line);
+    out.push("=== ใบหน้าร้าน (ลูกค้า) ===", shop.name, shop.sub || "", line, `\u0E1A\u0E34\u0E25 ${bill.code || "#" + bill.queue}  ${CHANNELS[bill.channel].label}`, `${bill.date} ${bill.time}`, line);
     bill.lines.forEach((l) => {
       out.push(pad(`${l.qty} ${l.name}`, (l.unit * l.qty).toFixed(0), w));
       l.opts.forEach((o) => out.push("  + " + o.name));
@@ -3019,9 +3019,32 @@ function drawSlip(b, kitchen) {
     y += 12;
   };
   const big = W > 400 ? 1.25 : 1;
+  const LABEL = (t) => {
+    F(34 * big, 700);
+    const h = 34 * big * 1.5;
+    x.fillRect(P, y, W - 2 * P, h);
+    x.fillStyle = "#fff";
+    const tw = x.measureText(t).width;
+    x.fillText(t, (W - tw) / 2, y + h * 0.17);
+    x.fillStyle = "#000";
+    y += h + 10;
+  };
+  const CUT = () => {
+    y += 16;
+    F(22 * big, 600);
+    const lab = "\u2702 \u0E09\u0E35\u0E01\u0E15\u0E23\u0E07\u0E19\u0E35\u0E49 \u2702";
+    const tw = x.measureText(lab).width, mid = y + 11 * big;
+    for (let xx = P; xx < W - P; xx += 18) {
+      if (xx + 10 > (W - tw) / 2 - 8 && xx < (W + tw) / 2 + 8) continue;
+      x.fillRect(xx, mid, 10, 3);
+    }
+    x.fillText(lab, (W - tw) / 2, y);
+    y += 22 * big * 1.4 + 16;
+  };
   const code = b.code || "#" + b.queue;
   const chL = Core.CHANNELS[b.channel].label;
   if (kitchen) {
+    LABEL("ใบหลังร้าน (ของร้าน)");
     T("\u0E43\u0E1A\u0E2A\u0E31\u0E48\u0E07\u0E04\u0E23\u0E31\u0E27", 22 * big, { c: 1, w: 600 });
     T(code, 44 * big, { c: 1, w: 700 });
     T(chL + (b.name ? " \xB7 " + b.name : ""), 26 * big, { c: 1, w: 600 });
@@ -3039,8 +3062,10 @@ function drawSlip(b, kitchen) {
       y += 8;
     });
     HR(1);
-    y += 30;
+    y += 20;
+    CUT();
   } else {
+    LABEL("ใบหน้าร้าน (ลูกค้า)");
     T(cfg.name, 30 * big, { c: 1, w: 700 });
     if (cfg.sub) T(cfg.sub, 20 * big, { c: 1 });
     HR(1);
