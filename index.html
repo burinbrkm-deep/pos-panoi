@@ -3054,14 +3054,8 @@ function drawSlip(b, kitchen) {
   };
   const big = W > 400 ? 1.25 : 1;
   const LABEL = (t) => {
-    F(40 * big, 700);
-    const h = 40 * big * 1.5;
-    x.fillRect(P, y, W - 2 * P, h);
-    x.fillStyle = "#fff";
-    const tw = x.measureText(t).width;
-    x.fillText(t, (W - tw) / 2, y + h * 0.17);
-    x.fillStyle = "#000";
-    y += h + 10;
+    T(t, 40 * big, { c: 1, w: 800 });
+    y += 6;
   };
   const CUT = () => {
     y += 16;
