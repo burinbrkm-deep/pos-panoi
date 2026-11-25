@@ -2940,7 +2940,7 @@ $("#bPay").onclick = () => {
       bills.push(b);
       store.set("bills", bills);
       SND.cash();
-      sayMoney(b.pay === "cash" ? b.change ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 " + baht(b.received) + " \u0E17\u0E2D\u0E19 " + baht(b.change) : "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E1E\u0E2D\u0E14\u0E35 \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : b.pay === "qr" ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E42\u0E2D\u0E19 " + baht(b.totals.total) + " \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : "\u0E1B\u0E34\u0E14\u0E1A\u0E34\u0E25\u0E40\u0E23\u0E35\u0E22\u0E1A\u0E23\u0E49\u0E2D\u0E22");
+      sayMoney(b.pay === "cash" ? b.change ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19 " + baht(b.received) + " \u0E17\u0E2D\u0E19 " + baht(b.change) + " \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E1E\u0E2D\u0E14\u0E35 \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : b.pay === "qr" ? "\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E42\u0E2D\u0E19 " + baht(b.totals.total) + " \u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30" : "\u0E1B\u0E34\u0E14\u0E1A\u0E34\u0E25\u0E40\u0E23\u0E35\u0E22\u0E1A\u0E23\u0E49\u0E2D\u0E22");
       setTimeout(sync, 300);
       closeM();
       closeTicket();
@@ -3228,33 +3228,23 @@ function thText(t) {
     return thNum(+a) + (b && +b ? "\u0E08\u0E38\u0E14" + b.split("").map((c) => +c ? thNum(+c) : "\u0E28\u0E39\u0E19\u0E22\u0E4C").join("") : "");
   });
 }
+function toEn(t) {
+  const m = [["\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E1E\u0E2D\u0E14\u0E35", "exact amount"], ["\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E42\u0E2D\u0E19", "transfer received"], ["\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19", "received"], ["\u0E22\u0E2D\u0E14\u0E23\u0E27\u0E21", "total"], ["\u0E17\u0E2D\u0E19", "change"], ["\u0E1A\u0E32\u0E17", "baht"], ["\u0E02\u0E2D\u0E1A\u0E04\u0E38\u0E13\u0E04\u0E48\u0E30", "thank you"], ["\u0E1B\u0E34\u0E14\u0E1A\u0E34\u0E25\u0E40\u0E23\u0E35\u0E22\u0E1A\u0E23\u0E49\u0E2D\u0E22", "thank you"]];
+  t = String(t);
+  m.forEach(([a, b]) => {
+    t = t.split(a).join(" " + b + " ");
+  });
+  return t.replace(/[\u0E00-\u0E7F]+/g, " ").replace(/\s+/g, " ").trim();
+}
 let sayT = null;
 function say(t, fast) {
   try {
-    t = thText(t);
+    t = thVoice ? thText(t) : toEn(t);
+    if (!t) return;
     if (cfg.voice === false) return;
-    if (window.PNApp || !thVoice) {
-      if (navigator.onLine !== false) {
-        try {
-          if (window._au) _au.pause();
-          const a = new Audio("https://translate.google.com/translate_tts?ie=UTF-8&tl=th&client=tw-ob&q=" + encodeURIComponent(t.slice(0, 190)));
-          window._au = a;
-          a.playbackRate = fast ? 1.25 : 1.05;
-          a.onerror = () => {
-            if (window.PNApp) PNApp.speak(t, fast ? 1.3 : 1.1);
-          };
-          const pr = a.play();
-          if (pr && pr.catch) pr.catch(() => {
-            if (window.PNApp) PNApp.speak(t, fast ? 1.3 : 1.1);
-          });
-          return;
-        } catch (e) {
-        }
-      }
-      if (window.PNApp) {
-        PNApp.speak(t, fast ? 1.3 : 1.1);
-        return;
-      }
+    if (window.PNApp) {
+      PNApp.speak(t, fast ? 1.3 : 1.1);
+      return;
     }
     if (!window.speechSynthesis) return;
     clearTimeout(sayT);
