@@ -267,6 +267,20 @@ html,body{overscroll-behavior:none;overscroll-behavior-y:none}.left,.right,.line
 
 .ln:has(.lrm){grid-template-columns:auto 1fr auto auto}
 .lrm{width:44px;height:44px;border-radius:10px;background:#fde2e2;color:var(--bad);font-size:20px;display:grid;place-items:center;padding:0}
+
+.bh{display:flex;gap:10px;margin:4px 0 12px}.bh>div{flex:1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px}.bh small{display:block;color:var(--mute);font-size:13px}.bh b{font-size:26px;font-weight:700}
+.bcards{display:flex;flex-direction:column;gap:10px;padding-bottom:20px}
+.bc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.bc.void{opacity:.5}.bc.void .bamt{text-decoration:line-through}
+.bc1{display:flex;align-items:center;gap:8px}
+.bno{background:var(--acc2);color:var(--acc);font-weight:700;border-radius:8px;padding:2px 8px;font-size:15px}
+.bt{color:var(--mute);font-size:14px}
+.bch{color:#fff;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%}
+.bamt{margin-left:auto;font-size:22px;font-weight:700}
+.bc2{display:flex;align-items:center;gap:8px;margin-top:6px}
+.bsum{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:15px}
+.bpay{color:var(--mute);font-size:13px;white-space:nowrap}
+.bc3{display:flex;gap:8px;margin-top:8px}.bc3 .sm{flex:1;height:40px;font-size:15px}.bc3 .bvx{flex:0 0 auto;padding:0 14px;color:var(--bad)}
 </style></head><body>
 <nav class="top"><div class="logo">🐷</div>
 <button class="on" data-p="sell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>ขาย</button>
@@ -3581,7 +3595,24 @@ async function printBill(b, withKitchen) {
 }
 function rBills() {
   const list = bills.filter((b) => b.date === today()).slice().reverse();
-  $("#p-bills").innerHTML = `<h2>\u0E1A\u0E34\u0E25\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49 (${list.length})</h2>${list.length ? `<table><tr><th>\u0E1A\u0E34\u0E25</th><th>\u0E40\u0E27\u0E25\u0E32</th><th>\u0E0A\u0E48\u0E2D\u0E07\u0E17\u0E32\u0E07</th><th>\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23</th><th>\u0E0A\u0E33\u0E23\u0E30</th><th>\u0E22\u0E2D\u0E14</th><th></th></tr>${list.map((b) => `<tr class="${b.void ? "void" : ""}"><td>${b.code || "#" + b.queue}${b.name ? "<br><small>" + b.name + "</small>" : ""}</td><td>${b.time}</td><td>${Core.CHANNELS[b.channel].label}</td><td>${b.lines.map((l) => l.qty + "\xD7" + l.name).join(", ")}</td><td>${{ cash: "\u0E40\u0E07\u0E34\u0E19\u0E2A\u0E14", qr: "\u0E42\u0E2D\u0E19", app: "\u0E41\u0E2D\u0E1B" }[b.pay]}</td><td>\u0E3F${fmt(b.totals.total)}</td><td>${b.void ? "\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01\u0E41\u0E25\u0E49\u0E27" : `<button class="sm" data-r="${b.id}">\u0E1B\u0E23\u0E34\u0E49\u0E19\u0E0B\u0E49\u0E33</button> <button class="sm" data-v="${b.id}">\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01</button>`}</td></tr>`).join("")}</table>` : '<p class="empty">\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1A\u0E34\u0E25\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49</p>'}`;
+  const TH = { front: "หน้าร้าน", shopee: "ช้อปปี้ฟู้ด", grab: "แกร็บฟู้ด", lineman: "ไลน์แมน" };
+  const PAY = { cash: "เงินสด", qr: "โอน", app: "แอป" };
+  const live = list.filter((b) => !b.void);
+  const tot = live.reduce((a, b) => a + b.totals.total, 0);
+  const sumOf = (b) => {
+    const box = b.lines.filter((l) => l.box).reduce((a, l) => a + l.qty, 0);
+    const other = b.lines.filter((l) => !l.box);
+    const parts = [];
+    if (box) parts.push(`ข้าวเหนียว ${box} ห่อ`);
+    other.forEach((l) => parts.push(`${l.name.replace(/ \(.*\)$/, "")} ${l.qty}`));
+    return parts.join(" · ");
+  };
+  $("#p-bills").innerHTML = `<div class="bh"><div><small>บิลวันนี้</small><b>${live.length}</b></div><div><small>ยอดรวม</small><b>฿${fmt(tot)}</b></div></div>${list.length ? `<div class="bcards">${list.map((b) => { const c = Core.CHANNELS[b.channel]; return `<div class="bc ${b.void ? "void" : ""}" data-o="${b.id}"><div class="bc1"><span class="bno">${(b.code || "").split("-").pop() || "#" + b.queue}</span><span class="bt">${b.time}</span><span class="bch" style="background:${c.color}">${TH[b.channel] || c.label}${b.ref ? " " + b.ref : ""}</span><b class="bamt">฿${fmt(b.totals.total)}</b></div><div class="bc2"><span class="bsum">${sumOf(b)}</span><span class="bpay">${b.void ? "ยกเลิกแล้ว" : PAY[b.pay] || ""}</span></div>${b.void ? "" : `<div class="bc3"><button class="sm" data-r="${b.id}">🖨 ปริ้นซ้ำ</button><button class="sm bvx" data-v="${b.id}">ยกเลิก</button></div>`}</div>`; }).join("")}</div>` : '<p class="empty">ยังไม่มีบิลวันนี้</p>'}`;
+  $("#p-bills").querySelectorAll("[data-o]").forEach((x) => x.onclick = (e) => {
+    if (e.target.closest("button")) return;
+    const b = bills.find((b2) => b2.id == x.dataset.o);
+    modal(`<h3>บิล ${b.code || "#" + b.queue} · ${b.time}</h3><p style="margin:-4px 0 8px;color:var(--mute)">${TH[b.channel] || Core.CHANNELS[b.channel].label}${b.ref ? " · " + b.ref : ""} · ${PAY[b.pay] || ""}</p>${b.lines.map((l) => `<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:16px"><span>${l.qty}× ${l.name}</span><b>฿${fmt(l.unit * l.qty)}</b></div>`).join("")}<div style="display:flex;justify-content:space-between;font-size:22px;font-weight:700;margin:10px 0">รวม<span>฿${fmt(b.totals.total)}</span></div><div class="btns"><button onclick="closeM()">ปิด</button></div>`);
+  });
   $("#p-bills").querySelectorAll("[data-r]").forEach((x) => x.onclick = () => printBill(bills.find((b) => b.id == x.dataset.r), false));
   $("#p-bills").querySelectorAll("[data-v]").forEach((x) => x.onclick = () => {
     const b = bills.find((b2) => b2.id == x.dataset.v);
