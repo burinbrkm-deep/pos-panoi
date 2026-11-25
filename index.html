@@ -236,6 +236,13 @@ table{font-size:13px}td,th{padding:8px}
 .ch button{font-size:11px!important}.tk .nm{max-width:70px}}
 html,body{overscroll-behavior:none;overscroll-behavior-y:none}.left,.right,.lines,.grid,.page,.box{overscroll-behavior:contain}
 
+.amtbox{max-height:98vh;max-height:98dvh;padding:12px 14px!important;overflow:auto}
+.amtbox h3{margin:0 0 4px!important}.amtbox>p{margin:0 0 8px!important;font-size:13px}
+.amtbox .cash{gap:6px;margin-bottom:8px}.amtbox .cash button{padding:6px 4px!important;min-height:0!important}
+.amtbox .cash button b{font-size:16px}.amtbox .cash button small{font-size:11px;white-space:nowrap}
+.amtbox .calc{margin:0 0 8px}.amtbox .calc input{height:46px;font-size:22px}
+.amtbox .pad button{height:46px;min-height:0;font-size:22px}.amtbox .btns button{height:50px}
+@media(max-height:700px){.amtbox .pad button{height:40px}.amtbox .calc input{height:40px}}
 .paybox{width:min(560px,96vw);max-height:96vh;max-height:96dvh;padding:14px 16px!important;overflow:auto}
 .paybox h3{margin:0 0 8px!important}.paybox .tabs{margin-bottom:8px}.paybox .tabs button{padding:9px}
 .paybox .cash{margin:0 0 8px;gap:6px}.paybox .cash button{padding:10px 4px;font-size:17px}
@@ -2667,7 +2674,7 @@ function amtPicker(o) {
     const g = v ? o.grams(v) : 0;
     modal(`<h3>${o.title}</h3><p style="margin:-6px 0 12px;color:var(--mute)">${o.sub}</p><div class="cash">${o.presets.map((p) => `<button data-v="${p.v}" class="${v === p.v ? "on" : ""}"><b>${p.l}</b><small>\u0E3F${p.v} \xB7 ${o.grams(p.v).toLocaleString()} \u0E01.</small></button>`).join("")}</div>
  <div class="calc"><label>\u0E01\u0E35\u0E48\u0E1A\u0E32\u0E17<input id="av" class="np" inputmode="none" value="${v != null ? v : ""}" placeholder="\u0E40\u0E0A\u0E48\u0E19 60"></label><span>=</span><label>\u0E01\u0E35\u0E48\u0E01\u0E23\u0E31\u0E21<input id="ag" class="np" inputmode="none" value="${v ? g : ""}" placeholder="\u0E40\u0E0A\u0E48\u0E19 150"></label></div>${pad()}
- <div class="btns"><button onclick="closeM()">\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01</button><button class="p" id="aok" ${v ? "" : "disabled"}>\u0E40\u0E1E\u0E34\u0E48\u0E21 ${v ? "\u0E3F" + fmt(v) : ""}</button></div>`);
+ <div class="btns"><button onclick="closeM()">\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01</button><button class="p" id="aok" ${v ? "" : "disabled"}>\u0E40\u0E1E\u0E34\u0E48\u0E21 ${v ? "\u0E3F" + fmt(v) : ""}</button></div>`, "amtbox");
     $("#mb").querySelectorAll(".cash button").forEach((b) => b.onclick = () => {
       v = +b.dataset.v;
       draw();
