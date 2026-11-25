@@ -2932,13 +2932,13 @@ $("#bPay").onclick = () => {
   save();
   const T = Core.totals(cart, channel, discount);
   SND.open();
-  sayMoney(baht(T.total));
+  if (!Core.CHANNELS[channel].app) sayMoney(baht(T.total));
   let pay = Core.CHANNELS[channel].app ? "app" : "cash";
   let rec = null;
   let oref = "";
   const OMAX = { shopee: 3, grab: 4, lineman: 4 };
   const draw = () => {
-    modal(`<h3 style="display:flex;justify-content:space-between;align-items:baseline"><span>\u0E1A\u0E34\u0E25 ${Core.billCode(today(), tickets[cur].no)}</span><span style="font-size:32px;font-weight:700">\u0E3F${fmt(T.total)}</span></h3><div class="tabs"><button data-p="cash" class="${pay === "cash" ? "on" : ""}">\u0E40\u0E07\u0E34\u0E19\u0E2A\u0E14</button><button data-p="qr" class="${pay === "qr" ? "on" : ""}">\u0E42\u0E2D\u0E19 / QR</button>${Core.CHANNELS[channel].app ? `<button data-p="app" class="${pay === "app" ? "on" : ""}">\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E2D\u0E1B</button>` : ""}</div>
+    modal(`<h3 style="display:flex;justify-content:space-between;align-items:baseline"><span>\u0E1A\u0E34\u0E25 ${Core.billCode(today(), tickets[cur].no)}</span>${pay === "app" ? "" : `<span style="font-size:32px;font-weight:700">\u0E3F${fmt(T.total)}</span>`}</h3><div class="tabs"><button data-p="cash" class="${pay === "cash" ? "on" : ""}">\u0E40\u0E07\u0E34\u0E19\u0E2A\u0E14</button><button data-p="qr" class="${pay === "qr" ? "on" : ""}">\u0E42\u0E2D\u0E19 / QR</button>${Core.CHANNELS[channel].app ? `<button data-p="app" class="${pay === "app" ? "on" : ""}">\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E2D\u0E1B</button>` : ""}</div>
  ${pay === "cash" ? `<div class="pcols"><div class="pl"><div class="cash">${Core.quickCash(T.total).map((v) => `<button data-v="${v}">\u0E3F${fmt(v)}</button>`).join("")}</div><input id="rv" class="np" inputmode="none" placeholder="\u0E23\u0E31\u0E1A\u0E40\u0E07\u0E34\u0E19\u0E21\u0E32" value="${rec != null ? rec : ""}"><div class="chg" id="cv"></div></div><div class="pr">${pad()}</div></div>` : pay === "qr" ? `<div class="qr"><div id="qrbox" style="display:inline-block;background:#fff;padding:10px;border-radius:12px"></div><br><b style="font-size:30px;color:var(--ink)">\u0E3F${fmt(T.total)}</b><br><small>\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E40\u0E1E\u0E22\u0E4C ${cfg.pp || "0812345678 (\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07 \u2014 \u0E43\u0E2A\u0E48\u0E40\u0E1A\u0E2D\u0E23\u0E4C\u0E08\u0E23\u0E34\u0E07\u0E43\u0E19\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32)"}</small></div>` : `<label style="display:block;font-size:15px;font-weight:600;margin:2px 0 4px">เลขออเดอร์ ${({shopee:"ช้อปปี้ฟู้ด",grab:"แกร็บฟู้ด",lineman:"ไลน์แมน"})[channel]||Core.CHANNELS[channel].label} (ไม่เกิน ${OMAX[channel]||6} หลัก)</label><div style="display:flex;align-items:center;gap:6px">${channel==="grab"?'<b style="font-size:26px">GF-</b>':""}<input id="oref" class="np" data-raw="1" data-max="${OMAX[channel]||6}" inputmode="none" placeholder="${"1234".slice(0,OMAX[channel]||4)}" value="${oref}" style="font-size:26px;text-align:center;flex:1;min-width:0"></div>${pad()}`}
  <div class="btns"><button onclick="closeM()">\u0E01\u0E25\u0E31\u0E1A</button><button class="p" id="done" disabled>\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19 & \u0E1B\u0E23\u0E34\u0E49\u0E19</button></div>`, "paybox");
     $("#mb").querySelectorAll(".tabs button").forEach((b) => b.onclick = () => {
@@ -2960,7 +2960,8 @@ $("#bPay").onclick = () => {
         return;
       }
       if (pay === "app") {
-        d.disabled = false;
+        d.disabled = !oref;
+        if (!oref) { d.textContent = "กรอกเลขออเดอร์ก่อน"; return; }
         d.textContent = "\u2713 \u0E08\u0E48\u0E32\u0E22\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E2D\u0E1B\u0E41\u0E25\u0E49\u0E27 \xB7 \u0E1B\u0E23\u0E34\u0E49\u0E19";
         return;
       }
@@ -2985,7 +2986,7 @@ $("#bPay").onclick = () => {
     });
     bindPad($("#mb"));
     const orf = $("#oref");
-    if (orf) orf.oninput = () => { oref = orf.value; };
+    if (orf) orf.oninput = () => { oref = orf.value; upd(); };
     const rv = $("#rv");
     if (rv) rv.oninput = () => {
       rec = rv.value === "" ? null : +rv.value;
